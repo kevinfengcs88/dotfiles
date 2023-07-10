@@ -1,0 +1,158 @@
+{
+  "main": {
+    "id": "13e3894c04d7ced4",
+    "type": "split",
+    "children": [
+      {
+        "id": "474b7d7770b09580",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "9722ec577ee3bcb2",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "fireship/sveltekit/key-concepts.md",
+                "mode": "source",
+                "source": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "daaba11163ac7beb",
+    "type": "split",
+    "children": [
+      {
+        "id": "3a09d1e1a521ba75",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "749b819b20761b52",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "faca315a3be5c5df",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "3befeb96af2ad184",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "right": {
+    "id": "a7644e728cc2ea09",
+    "type": "split",
+    "children": [
+      {
+        "id": "4631fc517314dd45",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ece42277e69db3ca",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "fireship/sveltekit/key-concepts.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "5fa27ad3840d8554",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "fireship/sveltekit/key-concepts.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "40c2a5aa41a17ce3",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "c05e6e0d0a233a47",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "fireship/sveltekit/key-concepts.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "9722ec577ee3bcb2",
+  "lastOpenFiles": [
+    "Testing/binturong.md",
+    "fireship/sveltekit/key-concepts.md",
+    "fireship/sveltekit",
+    "fireship",
+    "Testing"
+  ]
+}
