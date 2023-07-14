@@ -29,10 +29,10 @@ config.default_domain = 'WSL:Ubuntu'
 
 config.keys = {
     -- paste from the clipboard
-    { key = 'V', mods = 'CTRL', action = act.PasteFrom 'Clipboard' },
+    -- { key = 'V', mods = 'CTRL', action = act.PasteFrom 'Clipboard' },
 
     -- paste from the primary selection
-    { key = 'V', mods = 'CTRL', action = act.PasteFrom 'PrimarySelection' },
+    -- { key = 'V', mods = 'CTRL', action = act.PasteFrom 'PrimarySelection' },
 
     { key = '=', mods = 'CTRL', action = act.IncreaseFontSize },
 
