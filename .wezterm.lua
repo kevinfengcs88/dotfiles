@@ -17,6 +17,19 @@ end
 config.color_scheme = 'MaterialDarker'
 config.font = wezterm.font 'Hack Nerd Font'
 config.disable_default_key_bindings = true
+config.window_background_opacity = 0.9
+-- config.window_background_image = 'C:/Users/Kevin/space.gif'
+config.window_background_image_hsb = {
+  -- Darken the background image by reducing it to 1/3rd
+  brightness = 0.1,
+
+  -- You can adjust the hue by scaling its value.
+  -- a multiplier of 1.0 leaves the value unchanged.
+  hue = 1.0,
+
+  -- You can adjust the saturation also.
+  saturation = 1.0,
+}
 
 config.unix_domains = {
     {
@@ -38,9 +51,9 @@ config.keys = {
 
     { key = '-', mods = 'CTRL', action = act.DecreaseFontSize },
 
-    { key = 'w', mods = 'CTRL', action = wezterm.action.CloseCurrentPane { confirm = true } },
+    { key = 'W', mods = 'CTRL', action = wezterm.action.CloseCurrentPane { confirm = true } },
 
-    { key = 't', mods = 'CTRL', action = act.SpawnTab 'DefaultDomain' },
+    { key = 'T', mods = 'CTRL', action = act.SpawnTab 'DefaultDomain' },
 
     { key = ',', mods = 'ALT', action = act.ActivateTabRelative(-1) },
 
