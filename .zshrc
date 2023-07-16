@@ -142,3 +142,4 @@ export NVM_DIR="$HOME/.nvm"
 # Codon compiler path (added by install script)
 export PATH=/home/kevinfengcs88/.codon/bin:$PATH
 export EDITOR=/usr/local/bin/nvim
+export PATH=$PATH:/usr/local/go/bin
