@@ -1,4 +1,4 @@
-neofetch
+fastfetch
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -116,6 +116,8 @@ source $ZSH/oh-my-zsh.sh
 
 export PATH="$PATH:/opt/nvim-linux64/bin"
 export PATH="$PATH:/usr/local/go/bin"
+export PATH="$PATH:/home/kevin/go/bin"
+export PATH="$PATH:/home/kevin/.local/bin"
 export EDITOR='nvim'
 export VISUAL='nvim'
 alias runelite='cd /home/kevin/.var/app/com.jagex.Launcher/.runelite'
@@ -126,6 +128,7 @@ alias 240='xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240.00'
 # need better logic for this alias/function if using wayland
 alias todo='nvim /home/kevin/todo.md'
 alias ls='colorls'
+alias cat='bat -pp'
 
 function usage {
     echo "CPU Usage: "$[100-$(vmstat 1 2| tail -1| awk '{print $15}')]"%"
@@ -144,3 +147,5 @@ source /home/kevin/git/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 #source <(fzf --zsh)
+eval "$(zoxide init --cmd cd zsh)"
+. "$HOME/.cargo/env"
