@@ -31,7 +31,7 @@ return {
                 },
                 indent = {
                     enable = true,
-                    disable = { 'go' }
+                    disable = { 'go', 'python' }
                 }
             })
         end
