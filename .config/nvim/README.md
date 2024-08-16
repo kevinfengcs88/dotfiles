@@ -25,3 +25,5 @@ rm -f $(which nvim)
     - Required for telescope to grep files
 - xclip (Linux)
     - Required for clipboard tool in Linux, in WSL, rely on powershell command and clip.exe
+- npm
+    - Required for pyright
