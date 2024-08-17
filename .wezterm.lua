@@ -24,6 +24,7 @@ config.window_background_image_hsb = {
 config.color_scheme = 'Tokyo Night'
 config.font = wezterm.font('JetBrains Mono', { weight = 'Bold' })
 config.hide_mouse_cursor_when_typing = false
+config.hide_tab_bar_if_only_one_tab = true
 
 config.window_padding = {
     left = 0,
