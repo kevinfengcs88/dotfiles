@@ -11,8 +11,6 @@
 --     cache_enabled = 0,
 -- }
 
-vim.opt.clipboard = 'unnamed,unnamedplus'
-
 require('v9.options')
 require('v9.keymaps')
 require('v9.lazy')

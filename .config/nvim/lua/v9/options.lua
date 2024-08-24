@@ -22,5 +22,4 @@ set.expandtab = true
 set.shiftround = true
 set.mousemoveevent = true
 set.winbar = " %{%v:lua.vim.fn.expand('%F')%}  %{%v:lua.require'nvim-navic'.get_location()%}"
-
--- set.clipboard = 'unnamedplus'
+set.clipboard = 'unnamed,unnamedplus'
