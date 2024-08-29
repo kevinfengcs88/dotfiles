@@ -129,7 +129,6 @@ alias 240='xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240.00'
 alias todo='nvim /home/kevin/todo.md'
 alias ls='colorls'
 alias cat='bat -pp'
-alias yt='youtube-dl'
 
 function usage {
     echo "CPU Usage: "$[100-$(vmstat 1 2| tail -1| awk '{print $15}')]"%"
