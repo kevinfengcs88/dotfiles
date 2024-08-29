@@ -122,13 +122,14 @@ export EDITOR='nvim'
 export VISUAL='nvim'
 alias runelite='cd /home/kevin/.var/app/com.jagex.Launcher/.runelite'
 alias dl='cd /home/kevin/Downloads'
-alias wezterm='flatpak run org.wezfurlong.wezterm'
+#alias wezterm='flatpak run org.wezfurlong.wezterm'
 alias vim='nvim'
 alias 240='xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240.00'
 # need better logic for this alias/function if using wayland
 alias todo='nvim /home/kevin/todo.md'
 alias ls='colorls'
 alias cat='bat -pp'
+alias yt='youtube-dl'
 
 function usage {
     echo "CPU Usage: "$[100-$(vmstat 1 2| tail -1| awk '{print $15}')]"%"

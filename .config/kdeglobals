@@ -140,8 +140,7 @@ DirSelectDialog Size=829,570
 History Items[$e]=file:$HOME/.config/Kvantum/Layan,file:$HOME/.config,file:$HOME/.config,file:$HOME
 
 [General]
-ColorScheme=BreezeDark
-ColorSchemeHash=9576ef87a0de1931c50aeb1831060260aa545ee6
+ColorSchemeHash=bcce7c1c6181c5e14e633cd8301e7a9036b67ac6
 
 [KDE]
 LookAndFeelPackage=Aritim-Dark
@@ -161,9 +160,9 @@ Show Inline Previews=true
 Show Preview=false
 Show Speedbar=true
 Show hidden files=false
-Sort by=Name
+Sort by=Date
 Sort directories first=true
-Sort reversed=false
+Sort reversed=true
 Speedbar Width=138
 View Style=DetailTree
 
