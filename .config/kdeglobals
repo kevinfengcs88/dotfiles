@@ -136,8 +136,8 @@ ForegroundPositive=39,174,96
 ForegroundVisited=155,89,182
 
 [DirSelect Dialog]
-DirSelectDialog Size=829,570
-History Items[$e]=file:$HOME/.config/Kvantum/Layan,file:$HOME/.config,file:$HOME/.config,file:$HOME
+DirSelectDialog Size=876,598
+History Items[$e]=file:$HOME/git/obsidian-vault,file:$HOME/git/obsidian-vault,file:$HOME/Videos,file:$HOME/.config/Kvantum/Layan,file:$HOME/.config,file:$HOME/.config,file:$HOME
 
 [General]
 ColorSchemeHash=bcce7c1c6181c5e14e633cd8301e7a9036b67ac6
@@ -159,10 +159,10 @@ Show Full Path=false
 Show Inline Previews=true
 Show Preview=false
 Show Speedbar=true
-Show hidden files=false
+Show hidden files=true
 Sort by=Date
 Sort directories first=true
-Sort reversed=true
+Sort reversed=false
 Speedbar Width=138
 View Style=DetailTree
 

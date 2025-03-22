@@ -7,3 +7,14 @@ findbar { order: -1 }
 .tab-icon-image {
   opacity: 1 !important;
 }
+
+/* Hide the mute/unmute button */
+.tab-icon-overlay:not([pinned], [sharing], [crashed]):is([soundplaying], [muted]) {
+    display: none !important;
+}
+/* Keep site icon visible on hover */
+.tabbrowser-tab:hover .tab-icon-stack:not([pinned], [sharing], [crashed]):is([soundplaying], [muted]) > :not(.tab-icon-overlay), 
+     /* for site icon with Compact density */
+:root[uidensity="compact"] .tab-icon-stack:not([pinned], [sharing], [crashed]):is([soundplaying], [muted]) > :not(.tab-icon-overlay) {
+    opacity: 1 !important; /* overrides full transparency with full opacity */
+}
