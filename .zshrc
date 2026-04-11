@@ -186,8 +186,5 @@ function nvims() {
 
 bindkey -s ^a "nvims\n"
 
-
-# this is us being lazy, keep it that way :)
-alias nvim='nvim-lazy'
 # is this supposed to be the last line???
 . "/home/kevin/.deno/env"
