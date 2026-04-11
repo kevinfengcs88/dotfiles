@@ -22,4 +22,4 @@ set.expandtab = true
 set.shiftround = true
 set.mousemoveevent = true
 set.winbar = " %{%v:lua.vim.fn.expand('%F')%}  %{%v:lua.require'nvim-navic'.get_location()%}"
-set.clipboard = 'unnamed,unnamedplus'
+-- clipboard intentionally NOT set to unnamed/unnamedplus so nvim registers are isolated from the system clipboard
