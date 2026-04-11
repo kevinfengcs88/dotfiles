@@ -11,7 +11,7 @@ This repository contains my Neovim config, which is written in Lua. It uses [laz
 
 ## Uninstalling
 
-I build Neovim from source. To uninstall just run:
+~~I USED TO build Neovim from source. To uninstall just run:~~
 
 ```
 rm -f $(which nvim)
