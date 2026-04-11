@@ -161,4 +161,33 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+set -o vi
+export VISUAL=nvim
+export EDITOR=nvim
+
+autoload edit-command-line
+zle -N edit-command-line
+bindkey -M vicmd 'v' edit-command-line
+
+alias nvim-lazy="NVIM_APPNAME=LazyVim nvim"
+alias nvim-chad="NVIM_APPNAME=NvChad nvim"
+
+function nvims() {
+  items=("default" "LazyVim" "NvChad")
+  config=$(printf "%s\n" "${items[@]}" | fzf --prompt=" Neovim Config  " --height=~50% --layout=reverse --border --exit-0)
+  if [[ -z $config ]]; then
+    echo "Nothing selected"
+    return 0
+  elif [[ $config == "default" ]]; then
+    config=""
+  fi
+  NVIM_APPNAME=$config nvim $@
+}
+
+bindkey -s ^a "nvims\n"
+
+
+# this is us being lazy, keep it that way :)
+alias nvim='nvim-lazy'
+# is this supposed to be the last line???
 . "/home/kevin/.deno/env"
