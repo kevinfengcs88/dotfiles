@@ -132,6 +132,10 @@ alias ls='colorls'
 alias cat='bat -pp'
 alias youtube-dl='python3 /usr/local/bin/youtube-dl'
 alias podcast='yt-dlp -x --audio-format m4a --audio-quality 0 --cookies ~/Downloads/youtube_cookies.txt'
+#alias podcast='yt-dlp -x --audio-format m4a --audio-quality 0 --js-runtimes /home/kevin/.deno/bin/deno'
+alias video='yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --merge-output-format mp4 --cookies ~/Downloads/youtube_cookies.txt'
+alias n8n='ssh root@72.62.174.124'
+
 
 function usage {
     echo "CPU Usage: "$[100-$(vmstat 1 2| tail -1| awk '{print $15}')]"%"
@@ -157,3 +161,4 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+. "/home/kevin/.deno/env"
