@@ -1,65 +1,85 @@
 return {
     {
-        'folke/neodev.nvim',
+        'williamboman/mason.nvim',
+        cmd = 'Mason',
+        build = ':MasonUpdate',
+        config = true,
+    },
+    {
+        'williamboman/mason-lspconfig.nvim',
         event = { 'BufReadPre', 'BufNewFile' },
+        dependencies = {
+            'williamboman/mason.nvim',
+            'neovim/nvim-lspconfig',
+        },
         config = function()
-            local neodev_status_ok, neodev = pcall(require, 'neodev')
+            vim.lsp.config('lua_ls', {
+                settings = {
+                    Lua = {
+                        runtime = { version = 'LuaJIT' },
+                        workspace = {
+                            checkThirdParty = false,
+                            library = { vim.env.VIMRUNTIME },
+                        },
+                    }
+                }
+            })
 
-            if not neodev_status_ok then
-                return
+            require('mason-lspconfig').setup({
+                ensure_installed = { 'pyright', 'lua_ls', 'gopls', 'clangd', 'bashls' },
+                automatic_enable = true,
+            })
+
+            local orig_rename = vim.lsp.handlers['textDocument/rename']
+            vim.lsp.handlers['textDocument/rename'] = function(err, result, ctx, config)
+                if result and result.documentChanges then
+                    for _, change in ipairs(result.documentChanges) do
+                        if change.edits then
+                            for _, edit in ipairs(change.edits) do
+                                edit.annotationId = nil
+                            end
+                        end
+                    end
+                end
+                orig_rename(err, result, ctx, config)
             end
 
-            neodev.setup()
+            vim.api.nvim_create_autocmd('LspAttach', {
+                callback = function(args)
+                    local bufnr = args.buf
+                    local client = vim.lsp.get_client_by_id(args.data.client_id)
+                    local map = function(keys, func) vim.keymap.set('n', keys, func, { buffer = bufnr }) end
+
+                    map('gd', vim.lsp.buf.definition)
+                    map('gD', vim.lsp.buf.declaration)
+                    map('gr', vim.lsp.buf.references)
+                    map('gi', vim.lsp.buf.implementation)
+                    map('K', vim.lsp.buf.hover)
+                    map('<leader>rn', vim.lsp.buf.rename)
+                    map('<leader>ca', vim.lsp.buf.code_action)
+                    map('[d', function() vim.diagnostic.jump({ count = -1 }) end)
+                    map(']d', function() vim.diagnostic.jump({ count = 1 }) end)
+
+                    local navic_ok, navic = pcall(require, 'nvim-navic')
+                    if navic_ok and client and client.server_capabilities.documentSymbolProvider then
+                        navic.attach(client, bufnr)
+                    end
+                end
+            })
         end
     },
     {
-        'VonHeikemen/lsp-zero.nvim',
-        event = { 'BufReadPre', 'BufNewFile' },
-        cmd = 'Mason',
-        branch = 'v2.x',
+        'hrsh7th/nvim-cmp',
+        event = 'InsertEnter',
         dependencies = {
-            { 'neovim/nvim-lspconfig' },
-            {
-                'williamboman/mason.nvim',
-                build = function()
-                    pcall(vim.cmd, 'MasonUpdate')
-                end
-            },
-            { 'williamboman/mason-lspconfig.nvim', },
-
-            { 'hrsh7th/nvim-cmp' },
-            { 'hrsh7th/cmp-nvim-lsp' },
-            { 'L3MON4D3/LuaSnip' },
-            { 'SmiteshP/nvim-navic' }
+            'hrsh7th/cmp-nvim-lsp',
+            'L3MON4D3/LuaSnip',
+            'saadparwaiz1/cmp_luasnip',
+            'rafamadriz/friendly-snippets',
+            'SmiteshP/nvim-navic',
         },
         config = function()
-
-            local lsp = require('lsp-zero').preset({})
-
-            local navic = require('nvim-navic')
-
-            lsp.on_attach(function(client, bufnr)
-                lsp.default_keymaps({buffer = bufnr})
-                if client.server_capabilities.documentSymbolProvider then
-                    navic.attach(client, bufnr)
-                end
-            end)
-
-            require('lspconfig').lua_ls.setup(lsp.nvim_lua_ls())
-
-            lsp.ensure_installed({
-                'pyright',
-                'lua_ls',
-                'gopls',
-                'clangd',
-                'bashls'
-            })
-
-            lsp.setup()
-
             local cmp = require('cmp')
-            -- local cmp_action = require('lsp-zero').cmp_action()
-
             require('luasnip.loaders.from_vscode').lazy_load()
 
             cmp.setup({
@@ -81,9 +101,6 @@ return {
                     end
                 }
             })
-
         end
     },
-    { 'saadparwaiz1/cmp_luasnip' },
-    { 'rafamadriz/friendly-snippets' },
 }

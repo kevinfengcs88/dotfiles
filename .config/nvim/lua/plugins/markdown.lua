@@ -31,7 +31,13 @@ return {
     {
         'MeanderingProgrammer/markdown.nvim',
         main = "render-markdown",
-        opts = {},
+        opts = {
+            overrides = {
+                buftype = {
+                    nofile = { enabled = false },
+                },
+            },
+        },
         name = 'render-markdown', -- Only needed if you have another plugin named markdown.nvim
     }
 }

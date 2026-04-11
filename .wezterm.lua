@@ -71,12 +71,18 @@ config.keys = {
     { key = 'n', mods = 'LEADER', action = act.ActivateTabRelative(1) },
 }
 
-for i = 1, 8 do
-    -- CTRL+ALT + number to activate that tab
+for i = 1, 9 do
+    -- LEADER + number to switch focus to that tab
     table.insert(config.keys, {
-    key = tostring(i),
-    mods = 'LEADER',
-    action = act.ActivateTab(i - 1),
+        key = tostring(i),
+        mods = 'LEADER',
+        action = act.ActivateTab(i - 1),
+    })
+    -- CTRL+ALT + number to move current tab to that position
+    table.insert(config.keys, {
+        key = tostring(i),
+        mods = 'CTRL|ALT',
+        action = act.MoveTab(i - 1),
     })
 end
 
