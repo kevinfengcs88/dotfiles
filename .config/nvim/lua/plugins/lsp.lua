@@ -51,14 +51,7 @@ return {
                     local map = function(keys, func) vim.keymap.set('n', keys, func, { buffer = bufnr }) end
 
                     map('gd', vim.lsp.buf.definition)
-                    map('gD', vim.lsp.buf.declaration)
-                    map('gr', vim.lsp.buf.references)
-                    map('gi', vim.lsp.buf.implementation)
-                    map('K', vim.lsp.buf.hover)
-                    map('<leader>rn', vim.lsp.buf.rename)
-                    map('<leader>ca', vim.lsp.buf.code_action)
-                    map('[d', function() vim.diagnostic.jump({ count = -1 }) end)
-                    map(']d', function() vim.diagnostic.jump({ count = 1 }) end)
+                    vim.keymap.del('n', 'K', { buffer = bufnr })
 
                     local navic_ok, navic = pcall(require, 'nvim-navic')
                     if navic_ok and client and client.server_capabilities.documentSymbolProvider then
