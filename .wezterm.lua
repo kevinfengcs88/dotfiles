@@ -34,6 +34,12 @@ config.window_padding = {
     bottom = 0,
 }
 
+config.enable_scroll_bar = true
+config.colors = {
+    scrollbar_thumb = 'white',
+}
+config.min_scroll_bar_height = '3px'
+
 -- set up leader key
 -- default timeout is 1000 ms
 config.leader = { key = 'b', mods = 'CTRL', timeout_milliseconds = 1000 }
