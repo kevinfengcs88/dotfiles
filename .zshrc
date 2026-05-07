@@ -135,6 +135,8 @@ alias podcast='yt-dlp -x --audio-format m4a --audio-quality 0 --cookies ~/Downlo
 #alias podcast='yt-dlp -x --audio-format m4a --audio-quality 0 --js-runtimes /home/kevin/.deno/bin/deno'
 alias video='yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --merge-output-format mp4 --cookies ~/Downloads/youtube_cookies.txt'
 alias n8n='ssh root@72.62.174.124'
+alias mic='pactl set-card-profile bluez_card.60_AB_D2_8F_EA_93 headset-head-unit-msbc'
+alias nomic='pactl set-card-profile bluez_card.60_AB_D2_8F_EA_93 a2dp-sink'
 
 
 function usage {
