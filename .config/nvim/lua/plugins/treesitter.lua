@@ -34,6 +34,21 @@ return {
                     disable = { 'go', 'python' }
                 }
             })
+
+            -- nvim 0.12 + render-markdown's range-based parsing can produce stale TSNodes
+            -- where node.range is nil, crashing the injection directive. Override it with
+            -- pcall protection.
+            local lang_aliases = { ex = 'elixir', pl = 'perl', sh = 'bash', uxn = 'uxntal', ts = 'typescript' }
+            vim.treesitter.query.add_directive('set-lang-from-info-string!', function(match, _, bufnr, pred, metadata)
+                local node = match[pred[2]]
+                if not node then return end
+                local ok, text = pcall(vim.treesitter.get_node_text, node, bufnr)
+                if not ok or not text then return end
+                local lang = text:lower()
+                metadata['injection.language'] = vim.filetype.match({ filename = 'a.' .. lang })
+                    or lang_aliases[lang]
+                    or lang
+            end, { force = true, all = false })
         end
 
     }
