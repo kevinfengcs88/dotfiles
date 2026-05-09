@@ -123,8 +123,6 @@ export VISUAL='nvim'
 alias runelite='cd /home/kevin/.var/app/com.jagex.Launcher/.runelite'
 alias dl='cd /home/kevin/Downloads'
 #alias wezterm='flatpak run org.wezfurlong.wezterm'
-alias vim='nvim'
-alias vi='nvim'
 alias 240='xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240.00'
 # need better logic for this alias/function if using wayland
 alias todo='nvim /home/kevin/todo.md'
