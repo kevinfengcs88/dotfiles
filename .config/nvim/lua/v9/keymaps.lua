@@ -20,6 +20,15 @@ keymap.set('n', '<leader>l', ':Lazy<CR>', opts)
 -- clear search term when centering the cursor
 keymap.set('n', 'zz', 'zz:noh<CR>', opts)
 
+-- center cursor horizontally (the zz equivalent for left-right scrolling)
+keymap.set('n', 'zh', function()
+  local curcol = vim.fn.virtcol('.')
+  local width = vim.fn.winwidth(0)
+  local scrolloff = vim.o.sidescrolloff
+  local target_left = math.max(1, curcol - math.floor(width / 2) + 1)
+  vim.api.nvim_call_function('winrestview', { { leftcol = target_left } })
+end, opts)
+
 -- open up Themery
 keymap.set('n', '<leader>t', ':Themery<CR>', opts)
 

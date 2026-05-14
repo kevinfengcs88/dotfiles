@@ -135,7 +135,7 @@ alias video='yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --merge-outpu
 alias n8n='ssh root@72.62.174.124'
 alias mic='pactl set-card-profile bluez_card.60_AB_D2_8F_EA_93 headset-head-unit-msbc'
 alias nomic='pactl set-card-profile bluez_card.60_AB_D2_8F_EA_93 a2dp-sink'
-
+alias fcc='fcc-claude'
 
 function usage {
     echo "CPU Usage: "$[100-$(vmstat 1 2| tail -1| awk '{print $15}')]"%"
