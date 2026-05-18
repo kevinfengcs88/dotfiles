@@ -79,7 +79,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-autosuggestions)
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -114,48 +114,59 @@ source $ZSH/oh-my-zsh.sh
 
 ### CUSTOM STUFF
 
-export PATH="$PATH:/opt/nvim-linux64/bin"
+if [[ "$OSTYPE" == darwin* ]]; then
+    export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/4.0.0/bin:$PATH"
+elif [[ "$OSTYPE" == linux* ]]; then
+    export PATH="$PATH:/opt/nvim-linux64/bin"
+    alias runelite='cd ~/.var/app/com.jagex.Launcher/.runelite'
+    alias 240='xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240.00'
+    alias wezterm='flatpak run org.wezfurlong.wezterm'
+    alias mic='pactl set-card-profile bluez_card.60_AB_D2_8F_EA_93 headset-head-unit-msbc'
+    alias nomic='pactl set-card-profile bluez_card.60_AB_D2_8F_EA_93 a2dp-sink'
+fi
+
 export PATH="$PATH:/usr/local/go/bin"
-export PATH="$PATH:/home/kevin/go/bin"
-export PATH="$PATH:/home/kevin/.local/bin"
+export PATH="$PATH:$HOME/go/bin"
+export PATH="$PATH:$HOME/.local/bin"
 export EDITOR='nvim'
 export VISUAL='nvim'
-alias runelite='cd /home/kevin/.var/app/com.jagex.Launcher/.runelite'
-alias dl='cd /home/kevin/Downloads'
-#alias wezterm='flatpak run org.wezfurlong.wezterm'
-alias 240='xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240.00'
-# need better logic for this alias/function if using wayland
-alias todo='nvim /home/kevin/todo.md'
+alias dl='cd ~/Downloads'
+alias todo='nvim ~/todo.md'
 alias ls='colorls'
 alias cat='bat -pp'
 alias youtube-dl='python3 /usr/local/bin/youtube-dl'
 alias podcast='yt-dlp -x --audio-format m4a --audio-quality 0 --cookies ~/Downloads/youtube_cookies.txt'
-#alias podcast='yt-dlp -x --audio-format m4a --audio-quality 0 --js-runtimes /home/kevin/.deno/bin/deno'
 alias video='yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --merge-output-format mp4 --cookies ~/Downloads/youtube_cookies.txt'
 alias n8n='ssh root@72.62.174.124'
-alias mic='pactl set-card-profile bluez_card.60_AB_D2_8F_EA_93 headset-head-unit-msbc'
-alias nomic='pactl set-card-profile bluez_card.60_AB_D2_8F_EA_93 a2dp-sink'
 alias fcc='fcc-claude'
 
 function usage {
-    echo "CPU Usage: "$[100-$(vmstat 1 2| tail -1| awk '{print $15}')]"%"
+    if [[ "$OSTYPE" == darwin* ]]; then
+        top -l 1 | grep "CPU usage" | awk '{print "CPU Usage: " $3 " user, " $5 " sys, " $7 " idle"}'
+    else
+        echo "CPU Usage: "$[100-$(vmstat 1 2| tail -1| awk '{print $15}')]"%"
+    fi
 }
 
 function load {
-    core_count=$(cat /proc/cpuinfo | grep "cpu cores" | uniq | awk '{print $4}')
-    cpu_loads=$(uptime | awk '{print $(NF-2), $(NF-1), $(NF)}')
+    if [[ "$OSTYPE" == darwin* ]]; then
+        core_count=$(sysctl -n hw.physicalcpu)
+        cpu_loads=$(uptime | awk -F'load averages: ' '{print $2}')
+    else
+        core_count=$(grep "cpu cores" /proc/cpuinfo | uniq | awk '{print $4}')
+        cpu_loads=$(uptime | awk '{print $(NF-2), $(NF-1), $(NF)}')
+    fi
     echo "CPU Loads (1, 5, 15 min): ${cpu_loads}"
     echo "CPU Core Count: ${core_count}"
 }
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-source /home/kevin/git/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 #source <(fzf --zsh)
 eval "$(zoxide init --cmd cd zsh)"
-. "$HOME/.cargo/env"
+[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -187,5 +198,4 @@ function nvims() {
 
 bindkey -s ^a "nvims\n"
 
-# is this supposed to be the last line???
-. "/home/kevin/.deno/env"
+[[ -f "$HOME/.deno/env" ]] && . "$HOME/.deno/env"
