@@ -98,6 +98,10 @@ config.keys = {
     },
 }
 
+if wezterm.target_triple:find('apple') then
+    table.insert(config.keys, { key = 'v', mods = 'SUPER', action = act.PasteFrom 'Clipboard' })
+end
+
 for i = 1, 9 do
     -- LEADER + number to switch focus to that tab
     table.insert(config.keys, {
