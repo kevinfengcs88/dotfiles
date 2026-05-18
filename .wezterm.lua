@@ -76,6 +76,26 @@ config.keys = {
     -- switch tabs tmux style
     { key = 'p', mods = 'LEADER', action = act.ActivateTabRelative(-1) },
     { key = 'n', mods = 'LEADER', action = act.ActivateTabRelative(1) },
+
+    -- decrease/increase background opacity
+    {
+        key = '-', mods = 'CTRL|SUPER',
+        action = wezterm.action_callback(function(window)
+            local overrides = window:get_config_overrides() or {}
+            local opacity = (overrides.window_background_opacity or config.window_background_opacity or 1.0) - 0.1
+            overrides.window_background_opacity = math.max(0.0, opacity)
+            window:set_config_overrides(overrides)
+        end),
+    },
+    {
+        key = '=', mods = 'CTRL|SUPER',
+        action = wezterm.action_callback(function(window)
+            local overrides = window:get_config_overrides() or {}
+            local opacity = (overrides.window_background_opacity or config.window_background_opacity or 1.0) + 0.1
+            overrides.window_background_opacity = math.min(1.0, opacity)
+            window:set_config_overrides(overrides)
+        end),
+    },
 }
 
 for i = 1, 9 do
