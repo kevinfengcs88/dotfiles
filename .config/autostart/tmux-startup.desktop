@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Tmux Startup
+Exec=gnome-terminal -- bash -c 'bash ~/dotfiles/tmux-startup.sh; tmux attach -t dev'
+Hidden=false
+X-GNOME-Autostart-enabled=true
