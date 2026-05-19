@@ -136,7 +136,7 @@ ForegroundPositive=39,174,96
 ForegroundVisited=155,89,182
 
 [DirSelect Dialog]
-DirSelectDialog Size=844,598
+DirSelectDialog Size=937,1001
 History Items[$e]=file:$HOME,file:$HOME/git/obsidian-vault,file:$HOME/git/obsidian-vault,file:$HOME/Videos,file:$HOME/.config/Kvantum/Layan,file:$HOME/.config,file:$HOME/.config,file:$HOME
 
 [General]
