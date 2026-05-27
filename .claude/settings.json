@@ -1,0 +1,100 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash /home/kevin/.claude/statusline-command.sh"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Grep|Glob|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/home/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "timeout": 10,
+            "statusMessage": "Enriching with GitNexus graph context..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/home/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "timeout": 10,
+            "statusMessage": "Checking GitNexus index freshness..."
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "compound-engineering@compound-engineering-plugin": true,
+    "ralph-loop@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true,
+    "supabase@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "compound-engineering-plugin": {
+      "source": {
+        "source": "github",
+        "repo": "EveryInc/compound-engineering-plugin"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "theme": "dark",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true,
+  "voiceEnabled": true,
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(npm run build*)",
+      "Bash(npm run dev*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run test*)",
+      "Bash(pnpm build*)",
+      "Bash(pnpm dev*)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm install*)",
+      "Bash(cat*)",
+      "Bash(find*)",
+      "Bash(grep*)",
+      "Bash(git add*)",
+      "Bash(git diff*)",
+      "Bash(git status*)",
+      "Bash(git commit*)",
+      "Bash(git log*)",
+      "Bash(git stash*)",
+      "Bash(git checkout*)",
+      "Bash(git branch*)",
+      "Bash(node /home/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs*)",
+      "Bash(npx gitnexus*)",
+      "Bash(python3 /home/kevin/projects/slay/scripts/*.py*)",
+      "Bash(rm /home/kevin/projects/slay/.claude/*)",
+      "Edit(.claude/*)",
+      "Write(.claude/*)",
+      "mcp__plugin_supabase_supabase__list_projects",
+      "mcp__plugin_supabase_supabase__apply_migration",
+      "mcp__plugin_supabase_supabase__execute_sql",
+      "mcp__vercel__list_teams",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__get_deployment_build_logs",
+      "mcp__vercel__get_deployment",
+      "Read(/home/kevin/.claude/*)",
+      "Edit(/home/kevin/.claude/*)",
+      "Write(/home/kevin/.claude/*)"
+    ]
+  }
+}
