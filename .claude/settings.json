@@ -1,10 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run build*)",
-      "Bash(npm run dev*)",
-      "Bash(npm run lint*)",
-      "Bash(npm run test*)",
+      "Bash(npm *)",
+      "Bash(curl *)",
       "Bash(pnpm build*)",
       "Bash(pnpm dev*)",
       "Bash(pnpm lint*)",
@@ -45,7 +43,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "haiku",
+  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -96,7 +94,7 @@
       }
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "voice": {
     "enabled": true,
     "mode": "hold"

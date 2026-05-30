@@ -38,14 +38,12 @@ fi
 # Context usage
 if [ -n "$used_pct" ]; then
   used_int=$(printf "%.0f" "$used_pct")
-  if [ "$used_int" -ge 80 ]; then
-    ctx_color="\033[31m"
-  elif [ "$used_int" -ge 50 ]; then
-    ctx_color="\033[33m"
+  if [ "$used_int" -ge 40 ]; then
+    # Bold + blink + red as a reminder to run /compact
+    ctx_str="$(printf "\033[1;5;31mctx: ${used_int}%% /compact!\033[0m")"
   else
-    ctx_color="\033[32m"
+    ctx_str="$(printf "\033[32mctx: ${used_int}%%\033[0m")"
   fi
-  ctx_str="$(printf "${ctx_color}ctx: ${used_int}%%\033[0m")"
   [ -n "$parts" ] && parts="${parts}  ${ctx_str}" || parts="${ctx_str}"
 fi
 
