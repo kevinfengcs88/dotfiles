@@ -139,6 +139,7 @@ alias podcast='yt-dlp -x --audio-format m4a --audio-quality 0 --cookies ~/Downlo
 alias video='yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --merge-output-format mp4 --cookies ~/Downloads/youtube_cookies.txt'
 alias n8n='ssh root@72.62.174.124'
 alias fcc='fcc-claude'
+alias ccusage='bunx ccusage'
 
 function usage {
     if [[ "$OSTYPE" == darwin* ]]; then
@@ -199,3 +200,10 @@ function nvims() {
 bindkey -s ^a "nvims\n"
 
 [[ -f "$HOME/.deno/env" ]] && . "$HOME/.deno/env"
+
+# bun completions
+[ -s "/home/kevin/.bun/_bun" ] && source "/home/kevin/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
