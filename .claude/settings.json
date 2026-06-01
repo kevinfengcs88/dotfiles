@@ -99,7 +99,7 @@
       }
     }
   },
-  "effortLevel": "low",
+  "effortLevel": "high",
   "voice": {
     "enabled": true,
     "mode": "hold"

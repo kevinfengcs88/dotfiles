@@ -116,6 +116,7 @@ source $ZSH/oh-my-zsh.sh
 
 if [[ "$OSTYPE" == darwin* ]]; then
     export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/4.0.0/bin:$PATH"
+    alias kevin="ssh kevin@100.64.190.89"
 elif [[ "$OSTYPE" == linux* ]]; then
     export PATH="$PATH:/opt/nvim-linux64/bin"
     alias runelite='cd ~/.var/app/com.jagex.Launcher/.runelite'
