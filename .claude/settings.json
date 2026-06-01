@@ -39,11 +39,16 @@
       "Write(/home/kevin/.claude/*)",
       "WebSearch(*)",
       "Skill(ralph-loop*)",
-      "Skill(playwright*)"
+      "Skill(playwright*)",
+      "mcp__gitnexus",
+      "mcp__plugin_playwright_playwright"
+    ],
+    "ask": [
+      "mcp__plugin_playwright_playwright__browser_run_code_unsafe"
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "sonnet",
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -94,7 +99,7 @@
       }
     }
   },
-  "effortLevel": "medium",
+  "effortLevel": "low",
   "voice": {
     "enabled": true,
     "mode": "hold"
