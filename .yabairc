@@ -61,6 +61,5 @@ yabai -m rule --add app="Code" opacity=0.95
 yabai -m rule --add app="IntelliJ IDEA" opacity=0.98
 yabai -m rule --add app="Rectangle" manage=off
 yabai -m rule --add app="VSCodium" opacity=0.95
-yabai -m rule --add app="Messages" manage=off
 yabai -m rule --add app="Numi" manage=off
 yabai -m rule --add app="VMware Remote Console" manage=off

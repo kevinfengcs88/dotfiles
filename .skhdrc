@@ -8,10 +8,8 @@ ctrl + alt - r : yabai --restart-service
 hyper - u : ~/.cargo/bin/hl "$(pbpaste)" | tr -d '\n' | pbcopy
 
 # focus window
-hyper - h : yabai -m window --focus west
 hyper - j : yabai -m window --focus south
 hyper - k : yabai -m window --focus north
-hyper - l : yabai -m window --focus east
 
 # swap window
 :: swap_mode
@@ -25,13 +23,20 @@ swap_mode < l : yabai -m window --swap east ; skhd --key "escape"
 # Rotate Window Tree
 hyper - space : yabai -m space --rotate 90
 
-# fast focus desktop
-hyper - a : yabai -m space --focus prev
-hyper - d : yabai -m space --focus next
+# move window to prev/next desktop
+hyper - h : yabai -m window --space prev; yabai -m space --focus prev
+hyper - l : yabai -m window --space next; yabai -m space --focus next
 
-# send window to desktop and follow focus
-hyper - left : yabai -m window --space  prev; yabai -m space --focus prev
-hyper - right : yabai -m window --space next; yabai -m space --focus next
+# focus prev/next desktop
+hyper - left : yabai -m space --focus prev
+hyper - right : yabai -m space --focus next
+
+# focus specific space
+hyper - 1 : yabai -m space --focus 1
+hyper - 2 : yabai -m space --focus 2
+hyper - 3 : yabai -m space --focus 3
+hyper - 4 : yabai -m space --focus 4
+hyper - 5 : yabai -m space --focus 5
 
 # focus monitor using left and right arrow keys, respectively
 hyper - 1 : yabai -m display --focus prev
