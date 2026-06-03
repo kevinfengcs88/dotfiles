@@ -8,6 +8,7 @@ local config = wezterm.config_builder()
 -- This is where you actually apply your config choices
 
 config.disable_default_key_bindings = true
+config.enable_kitty_keyboard = true
 config.window_background_opacity = 1.0
 config.window_background_image_hsb = {
     -- Darken the background image by reducing it to 1/3rd
@@ -46,6 +47,9 @@ config.min_scroll_bar_height = '3px'
 config.leader = { key = 'b', mods = 'CTRL', timeout_milliseconds = 1000 }
 
 config.keys = {
+    -- Some input stacks misencode Shift+Space as ^L^@; force a literal space.
+    { key = 'Space', mods = 'SHIFT', action = act.SendString ' ' },
+
     -- split horizontal
     { key = '%', mods = 'LEADER|SHIFT', action = wezterm.action.SplitHorizontal { domain = 'CurrentPaneDomain' }, },
 
