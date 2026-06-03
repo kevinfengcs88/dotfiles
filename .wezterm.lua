@@ -24,7 +24,7 @@ config.window_background_image_hsb = {
 
 config.color_scheme = 'Tokyo Night'
 config.font = wezterm.font('JetBrains Mono', { weight = 'Bold' })
-config.font_size = wezterm.target_triple:find('apple') and 22.0 or 12
+config.font_size = wezterm.target_triple:find('apple') and 18.0 or 11.0
 config.hide_mouse_cursor_when_typing = false
 config.hide_tab_bar_if_only_one_tab = true
 config.warn_about_missing_glyphs = false
