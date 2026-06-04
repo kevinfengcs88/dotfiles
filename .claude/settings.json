@@ -177,7 +177,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"/home/kevin/dotfiles/.claude/playtime/playtime.py\" session-start",
+            "command": "python3 \"$HOME/dotfiles/.claude/playtime/playtime.py\" session-start",
             "timeout": 15
           }
         ]
@@ -188,7 +188,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"/home/kevin/dotfiles/.claude/playtime/playtime.py\" session-end",
+            "command": "python3 \"$HOME/dotfiles/.claude/playtime/playtime.py\" session-end",
             "timeout": 10
           }
         ]
@@ -197,7 +197,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash \"/home/kevin/dotfiles/.claude/playtime/playtime-statusline.sh\""
+    "command": "bash \"$HOME/dotfiles/.claude/playtime/playtime-statusline.sh\""
   },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,

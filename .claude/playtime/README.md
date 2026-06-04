@@ -49,6 +49,42 @@ Each machine writes only its own `sessions-<host>.jsonl`, so there are no merge
 conflicts. To combine playtime across machines, just commit + push your dotfiles
 on each, and pull on the others — the union report does the rest.
 
+## New machine setup
+
+The engine files are referenced in-place from the repo, so paths are portable
+(`$HOME` / relative to the script). After `git pull`:
+
+1. **CLI** — the `playtime` alias lives in `.zshrc` (synced). Just open a new
+   shell (or `source ~/.zshrc`). No per-machine symlink needed.
+
+2. **Hooks + statusline** — only needed if you want live/forward tracking on
+   that machine. If its `~/.claude/settings.json` is *not* symlinked to this
+   repo (e.g. the Mac uses a separate per-machine file), add these entries to
+   that machine's settings.json:
+
+   ```jsonc
+   // under "hooks":
+   "SessionStart": [
+     { "hooks": [ { "type": "command",
+       "command": "python3 \"$HOME/dotfiles/.claude/playtime/playtime.py\" session-start",
+       "timeout": 15 } ] }
+   ],
+   "SessionEnd": [
+     { "hooks": [ { "type": "command",
+       "command": "python3 \"$HOME/dotfiles/.claude/playtime/playtime.py\" session-end",
+       "timeout": 10 } ] }
+   ],
+   // top level:
+   "statusLine": { "type": "command",
+     "command": "bash \"$HOME/dotfiles/.claude/playtime/playtime-statusline.sh\"" }
+   ```
+
+   `backfill` still runs even without hooks (it's invoked on session-start, and
+   you can run `playtime backfill` manually any time), so the CLI report works
+   on a new machine immediately after the first `git pull`.
+
+Requires `python3` (present on macOS and Linux).
+
 ## Statusline
 
 `playtime-statusline.sh` is the configured statusline command. It runs your
