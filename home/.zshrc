@@ -116,10 +116,10 @@ source $ZSH/oh-my-zsh.sh
 
 if [[ "$OSTYPE" == darwin* ]]; then
     export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/4.0.0/bin:$PATH"
-    alias kevin="ssh pop-os"
-    alias n8n="ssh vps"
+    alias kevin="ssh kevin@pop-os"
+    alias n8n="ssh root@vps"
 elif [[ "$OSTYPE" == linux* ]]; then
-    alias n8n='ssh root@72.62.174.124'
+    alias n8n='ssh root@vps'
     export PATH="$PATH:/opt/nvim-linux64/bin"
     alias runelite='cd ~/.var/app/com.jagex.Launcher/.runelite'
     alias 240='xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240.00'
