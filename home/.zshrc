@@ -168,7 +168,6 @@ function load {
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 #source <(fzf --zsh)
-eval "$(zoxide init --cmd cd zsh)"
 [[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
 export NVM_DIR="$HOME/.nvm"
@@ -204,8 +203,12 @@ bindkey -s ^a "nvims\n"
 [[ -f "$HOME/.deno/env" ]] && . "$HOME/.deno/env"
 
 # bun completions
-[ -s "/home/kevin/.bun/_bun" ] && source "/home/kevin/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# zoxide must be initialized at the very end of the shell config
+# (its doctor warns if PATH/config changes after init)
+eval "$(zoxide init --cmd cd zsh)"
