@@ -116,8 +116,10 @@ source $ZSH/oh-my-zsh.sh
 
 if [[ "$OSTYPE" == darwin* ]]; then
     export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/4.0.0/bin:$PATH"
-    alias kevin="ssh kevin@100.64.190.89"
+    alias kevin="ssh pop-os"
+    alias n8n="ssh vps"
 elif [[ "$OSTYPE" == linux* ]]; then
+    alias n8n='ssh root@72.62.174.124'
     export PATH="$PATH:/opt/nvim-linux64/bin"
     alias runelite='cd ~/.var/app/com.jagex.Launcher/.runelite'
     alias 240='xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240.00'
@@ -138,7 +140,6 @@ alias cat='bat -pp'
 alias youtube-dl='python3 /usr/local/bin/youtube-dl'
 alias podcast='yt-dlp -x --audio-format m4a --audio-quality 0 --cookies ~/Downloads/youtube_cookies.txt'
 alias video='yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --merge-output-format mp4 --cookies ~/Downloads/youtube_cookies.txt'
-alias n8n='ssh root@72.62.174.124'
 alias fcc='fcc-claude'
 alias ccusage='bunx ccusage'
 alias playtime='python3 "$HOME/dotfiles/.claude/playtime/playtime.py"'

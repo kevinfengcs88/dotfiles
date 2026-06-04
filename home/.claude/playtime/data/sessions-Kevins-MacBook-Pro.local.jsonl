@@ -30,3 +30,8 @@
 {"start": 1780588075, "end": 1780588375, "session_id": "cfd64986-02d8-4c4b-aebc-aaeef5c26239", "host": "Kevins-MacBook-Pro.local", "source": "backfill"}
 {"start": 1780593579, "end": 1780593879, "session_id": "f29fba85-16d8-4004-8548-03baa8e37c7a", "host": "Kevins-MacBook-Pro.local", "source": "backfill"}
 {"start": 1780594087, "end": 1780594100, "session_id": "smoke-test", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
+{"start": 1780594404, "end": 1780594416, "session_id": "60671527-290f-4405-b9b1-38cd04a6d8fd", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
+{"start": 1780594431, "end": 1780594458, "session_id": "0f4f96d3-1d86-4a09-81ff-4bf76a0ef628", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
+{"start": 1780594728, "end": 1780595303, "session_id": "832c7889-4df9-4f82-aee9-2146121f2f18", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
+{"start": 1780593555, "end": 1780593741, "session_id": "f29fba85-16d8-4004-8548-03baa8e37c7a", "host": "Kevins-MacBook-Pro.local", "source": "hook-crash"}
+{"start": 1780595962, "end": 1780596051, "session_id": "1e5f7575-9906-4836-b97e-f386d0fe5bea", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
