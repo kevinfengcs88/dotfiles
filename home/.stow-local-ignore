@@ -1,0 +1,10 @@
+# Stow ignore list for the `home` package.
+# Entries are Perl regexes matched against each path's full path and basename.
+
+# playtime runs IN PLACE from $HOME/dotfiles/home/.claude/playtime (referenced by
+# absolute path in settings.json) and writes ephemeral state to ~/.claude/playtime.
+# It must NOT be symlinked into $HOME.
+\.claude/playtime
+
+# Claude per-machine local settings — never shared, never symlinked.
+settings\.local\.json
