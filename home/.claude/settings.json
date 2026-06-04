@@ -19,11 +19,25 @@
       "Bash(git stash*)",
       "Bash(git checkout*)",
       "Bash(git branch*)",
+      "Bash(git rebase *)",
+      "Bash(git push *)",
+      "Bash(git config *)",
+      "Bash(gh api *)",
+      "Bash(brew list *)",
+      "Bash(fc-list)",
+      "Bash(system_profiler SPFontsDataType)",
+      "Bash(chmod +x ~/.config/sketchybar/plugins/*.sh)",
+      "Bash(sketchybar --reload)",
+      "Bash(xxd ~/.config/sketchybar/plugins/battery.sh)",
+      "Bash(xxd ~/.config/sketchybar/sketchybarrc)",
       "Bash(node /home/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs*)",
+      "Bash(node /Users/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs*)",
       "Bash(npx gitnexus*)",
       "Bash(supabase*)",
       "Bash(python3 /home/kevin/projects/slay/scripts/*.py*)",
+      "Bash(python3 /Users/kevin/projects/slay/scripts/*.py*)",
       "Bash(rm /home/kevin/projects/slay/.claude/*)",
+      "Bash(rm /Users/kevin/projects/slay/.claude/*)",
       "Edit(.claude/*)",
       "Write(.claude/*)",
       "mcp__plugin_supabase_supabase__list_projects",
@@ -34,9 +48,9 @@
       "mcp__vercel__list_deployments",
       "mcp__vercel__get_deployment_build_logs",
       "mcp__vercel__get_deployment",
-      "Read(/home/kevin/.claude/*)",
-      "Edit(/home/kevin/.claude/*)",
-      "Write(/home/kevin/.claude/*)",
+      "Read(~/.claude/*)",
+      "Edit(~/.claude/*)",
+      "Write(~/.claude/*)",
       "WebSearch(*)",
       "Skill(ralph-loop*)",
       "Skill(playwright*)",
@@ -56,7 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/home/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "command": "node \"$HOME/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
             "timeout": 10,
             "statusMessage": "Enriching with GitNexus graph context..."
           }
@@ -67,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"/home/kevin/.nvm/versions/node/v22.6.0/bin/node\" \"/home/kevin/.claude/hooks/gsd-prompt-guard.js\"",
+            "command": "node \"$HOME/.claude/hooks/gsd-prompt-guard.js\"",
             "timeout": 5
           }
         ]
@@ -77,7 +91,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"/home/kevin/.nvm/versions/node/v22.6.0/bin/node\" \"/home/kevin/.claude/hooks/gsd-read-guard.js\"",
+            "command": "node \"$HOME/.claude/hooks/gsd-read-guard.js\"",
             "timeout": 5
           }
         ]
@@ -87,7 +101,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"/home/kevin/.nvm/versions/node/v22.6.0/bin/node\" \"/home/kevin/.claude/hooks/gsd-workflow-guard.js\"",
+            "command": "node \"$HOME/.claude/hooks/gsd-workflow-guard.js\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f \"$HOME/.claude/hooks/gsd-worktree-path-guard.js\" ]; then node \"$HOME/.claude/hooks/gsd-worktree-path-guard.js\"; fi",
             "timeout": 5
           }
         ]
@@ -97,7 +121,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"/home/kevin/.claude/hooks/gsd-validate-commit.sh\"",
+            "command": "bash \"$HOME/.claude/hooks/gsd-validate-commit.sh\"",
             "timeout": 5
           }
         ]
@@ -109,7 +133,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/home/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "command": "node \"$HOME/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
             "timeout": 10,
             "statusMessage": "Checking GitNexus index freshness..."
           }
@@ -120,7 +144,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"/home/kevin/.nvm/versions/node/v22.6.0/bin/node\" \"/home/kevin/.claude/hooks/gsd-context-monitor.js\"",
+            "command": "node \"$HOME/.claude/hooks/gsd-context-monitor.js\"",
             "timeout": 10
           }
         ]
@@ -130,7 +154,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"/home/kevin/.nvm/versions/node/v22.6.0/bin/node\" \"/home/kevin/.claude/hooks/gsd-read-injection-scanner.js\"",
+            "command": "node \"$HOME/.claude/hooks/gsd-read-injection-scanner.js\"",
             "timeout": 5
           }
         ]
@@ -140,7 +164,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"/home/kevin/.claude/hooks/gsd-graphify-update.sh\"",
+            "command": "bash \"$HOME/.claude/hooks/gsd-graphify-update.sh\"",
             "timeout": 5
           }
         ]
@@ -150,7 +174,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"/home/kevin/.claude/hooks/gsd-phase-boundary.sh\"",
+            "command": "bash \"$HOME/.claude/hooks/gsd-phase-boundary.sh\"",
             "timeout": 5
           }
         ]
@@ -161,7 +185,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"/home/kevin/.nvm/versions/node/v22.6.0/bin/node\" \"/home/kevin/.claude/hooks/gsd-check-update.js\""
+            "command": "node \"$HOME/.claude/hooks/gsd-check-update.js\""
           }
         ]
       },
@@ -169,7 +193,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"/home/kevin/.claude/hooks/gsd-session-state.sh\""
+            "command": "bash \"$HOME/.claude/hooks/gsd-session-state.sh\""
           }
         ]
       },
