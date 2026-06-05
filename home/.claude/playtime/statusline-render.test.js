@@ -30,3 +30,17 @@ test('renderBar: empty string for null/NaN', () => {
   assert.equal(R.renderBar(undefined), '');
   assert.equal(R.renderBar(NaN), '');
 });
+
+test('formatEffort: color-coded by level', () => {
+  assert.equal(R.formatEffort('low'), '\x1b[32meffort: low' + RESET);
+  assert.equal(R.formatEffort('medium'), '\x1b[32meffort: medium' + RESET);
+  assert.equal(R.formatEffort('high'), '\x1b[33meffort: high' + RESET);
+  assert.equal(R.formatEffort('xhigh'), '\x1b[38;5;208meffort: xhigh' + RESET);
+  assert.equal(R.formatEffort('max'), '\x1b[31meffort: max' + RESET);
+});
+
+test('formatEffort: empty when absent or unknown', () => {
+  assert.equal(R.formatEffort(undefined), '');
+  assert.equal(R.formatEffort(null), '');
+  assert.equal(R.formatEffort('weird'), '');
+});

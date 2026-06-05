@@ -33,4 +33,14 @@ function renderBar(pct) {
   return `${colorFor(p)}${skull}${bar} ${p}%${RESET}`;
 }
 
-module.exports = { renderBar };
+const RED = '\x1b[31m';
+const EFFORT_COLORS = { low: GREEN, medium: GREEN, high: YELLOW, xhigh: ORANGE, max: RED };
+
+// effort.level is one of low|medium|high|xhigh|max, or absent when the model
+// does not support the effort parameter. Unknown/absent => no segment.
+function formatEffort(level) {
+  if (!level || !(level in EFFORT_COLORS)) return '';
+  return `${EFFORT_COLORS[level]}effort: ${level}${RESET}`;
+}
+
+module.exports = { renderBar, formatEffort };
