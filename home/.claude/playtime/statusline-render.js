@@ -89,10 +89,13 @@ function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar
   const left = [model, branch, pathSeg].filter(Boolean).join(' │ ');
   let line1 = left;
   if (effort) {
-    const width = Number(cols) > 0 ? Math.floor(Number(cols)) : 0;
-    const gap = width - visibleLen(left) - visibleLen(effort);
+    // Reserve the final column: writing into the last cell makes the terminal
+    // autowrap, which Claude Code then truncates (e.g. "effort:…"). Target cols-1.
+    const cw = Number(cols) > 0 ? Math.floor(Number(cols)) : 0;
+    const target = cw - 1;
+    const gap = target - visibleLen(left) - visibleLen(effort);
     line1 = gap >= 1
-      ? left + ' '.repeat(gap) + effort                 // flush-right to terminal edge
+      ? left + ' '.repeat(gap) + effort                 // flush-right (one column shy of the edge)
       : [left, effort].filter(Boolean).join(' │ ');     // unknown width / no room → end-of-line
   }
   const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';

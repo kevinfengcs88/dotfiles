@@ -98,12 +98,12 @@ test('composeLines: effort flush-right when cols is known', () => {
     playtime: 'Hours spent in Gielinor: 66h', cols: 50,
   });
   const left = model + ' │ main │ ' + pathSeg;   // visible length 21
-  const gap = 50 - 21 - 12;                       // pad so effort hits the edge
+  const gap = (50 - 1) - 21 - 12;                 // pad so effort sits one column shy of the edge
   const line1 = left + ' '.repeat(gap) + effort;
   const line2 = '\x1b[1mtask' + RESET + ' │ ctx CTX │ 5h USE │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
-  // Line 1 visible width fills exactly to cols.
-  assert.equal(out.split('\n')[0].replace(/\x1b\[[0-9;]*m/g, '').length, 50);
+  // Line 1 visible width fills to cols-1 (final column reserved to avoid wrap/truncation).
+  assert.equal(out.split('\n')[0].replace(/\x1b\[[0-9;]*m/g, '').length, 49);
 });
 
 test('composeLines: effort falls back to end-of-line when cols unknown', () => {
@@ -173,8 +173,8 @@ test('buildOutput: passes cols through so effort is flush-right', () => {
     branch: 'main', task: null, gsdMiddle: '', cols: 60,
   });
   const first = out.split('\n')[0];
-  // Effort sits at the right edge: line 1 visible width equals cols and ends with the effort text.
-  assert.equal(first.replace(/\x1b\[[0-9;]*m/g, '').length, 60);
+  // Effort sits one column shy of the right edge (final column reserved); ends with effort text.
+  assert.equal(first.replace(/\x1b\[[0-9;]*m/g, '').length, 59);
   assert.ok(first.endsWith('\x1b[33meffort: high' + RESET));
   assert.ok(!first.includes(' · ')); // no longer prefixed onto the model
 });
