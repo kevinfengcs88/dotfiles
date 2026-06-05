@@ -43,4 +43,32 @@ function formatEffort(level) {
   return `${EFFORT_COLORS[level]}effort: ${level}${RESET}`;
 }
 
-module.exports = { renderBar, formatEffort };
+function formatModel(name) {
+  return `${DIM}${name || 'Claude'}${RESET}`;
+}
+
+// Collapse $HOME to ~, then if the path is deeper than 3 segments show
+// "…/last/two/three". Returns a plain (un-styled) string.
+function shortenPath(dir, home) {
+  if (!dir) return '';
+  let p = dir;
+  if (home && (p === home || p.startsWith(home + '/'))) {
+    p = '~' + p.slice(home.length); // '~' or '~/sub/...'
+  }
+  const isHome = p.startsWith('~');
+  const body = (isHome ? p.slice(1) : p).replace(/^\/+/, '');
+  const segs = body.split('/').filter(Boolean);
+  if (segs.length > 3) {
+    return '…/' + segs.slice(-3).join('/');
+  }
+  const root = isHome ? '~' : '';
+  if (segs.length === 0) return root || '/';
+  return `${root}/${segs.join('/')}`;
+}
+
+function formatPath(dir, home) {
+  if (!dir) return '';
+  return `${DIM}${shortenPath(dir, home)}${RESET}`;
+}
+
+module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath };

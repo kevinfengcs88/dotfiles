@@ -44,3 +44,32 @@ test('formatEffort: empty when absent or unknown', () => {
   assert.equal(R.formatEffort(null), '');
   assert.equal(R.formatEffort('weird'), '');
 });
+
+test('formatModel: dim, defaults to Claude', () => {
+  assert.equal(R.formatModel('Opus 4.8'), '\x1b[2mOpus 4.8' + RESET);
+  assert.equal(R.formatModel(''), '\x1b[2mClaude' + RESET);
+  assert.equal(R.formatModel(undefined), '\x1b[2mClaude' + RESET);
+});
+
+test('shortenPath: home-collapsed, kept when <=3 segments deep', () => {
+  assert.equal(R.shortenPath('/home/kevin/dotfiles/home/.claude', '/home/kevin'),
+    '~/dotfiles/home/.claude');
+  assert.equal(R.shortenPath('/home/kevin/proj', '/home/kevin'), '~/proj');
+  assert.equal(R.shortenPath('/home/kevin', '/home/kevin'), '~');
+});
+
+test('shortenPath: truncates deep paths to last 3 segments', () => {
+  assert.equal(R.shortenPath('/home/kevin/a/b/c/d', '/home/kevin'), '…/b/c/d');
+  assert.equal(R.shortenPath('/var/log/syslog/deep/path', '/home/kevin'),
+    '…/syslog/deep/path');
+});
+
+test('shortenPath: non-home absolute path kept when shallow', () => {
+  assert.equal(R.shortenPath('/usr/local/bin', '/home/kevin'), '/usr/local/bin');
+});
+
+test('formatPath: wraps shortenPath in dim', () => {
+  assert.equal(R.formatPath('/home/kevin/proj', '/home/kevin'),
+    '\x1b[2m~/proj' + RESET);
+  assert.equal(R.formatPath('', '/home/kevin'), '');
+});
