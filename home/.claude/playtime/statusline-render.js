@@ -77,14 +77,14 @@ function formatPlaytime(raw) {
 }
 
 // Visible width of a string, ignoring ANSI color codes. Line-1 content is all
-// Line 1 = identity + location (effort sits inline next to the model). Line 2 =
-// meters + playtime. Absent segments are dropped so separators never collapse to " │ │ ".
+// Line 1 = identity + location + current task/state, all pipe-separated.
+// Line 2 = meters + playtime. Absent segments are dropped so separators never
+// collapse to " │ │ ".
 function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime }) {
-  const id = effort ? `${model} · ${effort}` : model;
-  const line1 = [id, branch, pathSeg].filter(Boolean).join(' │ ');
+  const line1 = [model, effort, branch, pathSeg, middle].filter(Boolean).join(' │ ');
   const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';
   const usageSeg = usageBar ? `5h ${usageBar}` : '';
-  const line2 = [middle, ctxSeg, usageSeg, playtime].filter(Boolean).join(' │ ');
+  const line2 = [ctxSeg, usageSeg, playtime].filter(Boolean).join(' │ ');
   return line2 ? `${line1}\n${line2}` : line1;
 }
 

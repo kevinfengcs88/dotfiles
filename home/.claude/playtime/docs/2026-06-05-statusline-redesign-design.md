@@ -53,8 +53,8 @@ blinking red `>=80`.
 Full state (git repo, effort active, Pro/Max usage available):
 
 ```
-Opus 4.8 · effort: high │ main │ ~/dotfiles/home/.claude
-executing · auth (2/5) │ ctx ▓▓▓░░░░░░░ 38% │ 5h ▓▓░░░░░░░░ 22% │ Hours spent in Gielinor: 66h
+Opus 4.8 │ effort: high │ main │ ~/dotfiles/home/.claude │ executing · auth (2/5)
+ctx ▓▓▓░░░░░░░ 38% │ 5h ▓▓░░░░░░░░ 22% │ Hours spent in Gielinor: 66h
 ```
 
 Degraded state (not a git repo, no effort param, not Pro/Max, no task/GSD):
@@ -64,8 +64,8 @@ Opus 4.8 │ ~/some/dir
 ctx ▓▓▓░░░░░░░ 38% │ Hours spent in Gielinor: 66h
 ```
 
-- **Line 1 — identity + location:** `model · effort │ branch │ path` (effort inline next to the model)
-- **Line 2 — meters + playtime:** `middle │ ctx-bar │ 5h-bar │ Hours spent in Gielinor: Nh`
+- **Line 1 — identity + location + state:** `model │ effort │ branch │ path │ middle` (all pipe-separated)
+- **Line 2 — meters + playtime:** `ctx-bar │ 5h-bar │ Hours spent in Gielinor: Nh`
 - Separator is ` │ ` (matches current style). Any absent segment is dropped
   cleanly — never render an empty ` │ │ `.
 

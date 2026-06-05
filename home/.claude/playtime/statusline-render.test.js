@@ -88,7 +88,7 @@ test('formatPlaytime: defaults to 0h when empty', () => {
   assert.equal(R.formatPlaytime(undefined), 'Hours spent in Gielinor: 0h');
 });
 
-test('composeLines: full two-line output (effort inline next to model)', () => {
+test('composeLines: full output — line 1 carries task/state, line 2 is meters + playtime', () => {
   const out = R.composeLines({
     model: '\x1b[2mOpus 4.8' + RESET,
     effort: '\x1b[33meffort: high' + RESET,
@@ -99,9 +99,9 @@ test('composeLines: full two-line output (effort inline next to model)', () => {
     usageBar: 'USE',
     playtime: 'Hours spent in Gielinor: 66h',
   });
-  const line1 = '\x1b[2mOpus 4.8' + RESET + ' · \x1b[33meffort: high' + RESET +
-    ' │ main │ \x1b[2m~/x' + RESET;
-  const line2 = '\x1b[1mtask' + RESET + ' │ ctx CTX │ 5h USE │ Hours spent in Gielinor: 66h';
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[33meffort: high' + RESET +
+    ' │ main │ \x1b[2m~/x' + RESET + ' │ \x1b[1mtask' + RESET;
+  const line2 = 'ctx CTX │ 5h USE │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
 });
 
@@ -136,10 +136,9 @@ test('buildOutput: assembles full line from data + injected I/O', () => {
     task: null,
     gsdMiddle: '\x1b[2mexecuting · auth (2/5)' + RESET,
   });
-  const line1 = '\x1b[2mOpus 4.8' + RESET + ' · \x1b[33meffort: high' + RESET +
-    ' │ main │ \x1b[2m~/proj' + RESET;
-  const line2 = '\x1b[2mexecuting · auth (2/5)' + RESET +
-    ' │ ctx \x1b[32m███░░░░░░░ 38%' + RESET +
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[33meffort: high' + RESET +
+    ' │ main │ \x1b[2m~/proj' + RESET + ' │ \x1b[2mexecuting · auth (2/5)' + RESET;
+  const line2 = 'ctx \x1b[32m███░░░░░░░ 38%' + RESET +
     ' │ 5h \x1b[32m██░░░░░░░░ 22%' + RESET +
     ' │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
