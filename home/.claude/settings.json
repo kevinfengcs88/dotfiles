@@ -36,6 +36,7 @@
       "Bash(node /home/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs*)",
       "Bash(node /Users/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs*)",
       "Bash(npx gitnexus*)",
+      "Bash(gsd*)",
       "Bash(supabase*)",
       "Bash(python3 /home/kevin/projects/slay/scripts/*.py*)",
       "Bash(python3 /Users/kevin/projects/slay/scripts/*.py*)",
@@ -65,7 +66,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "sonnet",
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
