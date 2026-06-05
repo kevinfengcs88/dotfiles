@@ -144,6 +144,7 @@ alias fcc='fcc-claude'
 alias ccusage='bunx ccusage'
 alias playtime='python3 "$HOME/dotfiles/.claude/playtime/playtime.py"'
 alias cusage='$HOME/scripts/fetch-usage.sh'
+alias grip='go-grip'
 
 function usage {
     if [[ "$OSTYPE" == darwin* ]]; then
