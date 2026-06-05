@@ -178,4 +178,61 @@ function getGsdMiddle(dir, gsdPath) {
   }
 }
 
-module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines, buildOutput, detectBranch, readActiveTask, getGsdMiddle };
+// Replicates gsd-statusline.js's context-monitor bridge file so the existing
+// low-context PostToolUse warning keeps working. Best-effort; never throws.
+function writeBridge(data, session, tmpDir) {
+  try {
+    const remaining = data.context_window && data.context_window.remaining_percentage;
+    if (remaining == null) return;
+    const safe = session && !/[/\\]|\.\./.test(session);
+    if (!safe) return;
+    const dir = tmpDir || os.tmpdir();
+    const bridgePath = path.join(dir, `claude-ctx-${session}.json`);
+    fs.writeFileSync(bridgePath, JSON.stringify({
+      session_id: session,
+      remaining_percentage: remaining,
+      used_pct: Math.round(100 - remaining),
+      timestamp: Math.floor(Date.now() / 1000),
+    }));
+  } catch (e) {
+    // best-effort
+  }
+}
+
+function runStatusline() {
+  let input = '';
+  const timeout = setTimeout(() => process.exit(0), 3000); // guard against stuck stdin
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (c) => { input += c; });
+  process.stdin.on('end', () => {
+    clearTimeout(timeout);
+    try {
+      const data = JSON.parse(input);
+      const homeDir = os.homedir();
+      const dir = (data.workspace && data.workspace.current_dir) || process.cwd();
+      const session = data.session_id || '';
+      writeBridge(data, session);
+      const branch = detectBranch(dir);
+      const claudeDir = process.env.CLAUDE_CONFIG_DIR || path.join(homeDir, '.claude');
+      const task = readActiveTask(session, path.join(claudeDir, 'todos'));
+      const gsdMiddle = task ? '' : getGsdMiddle(dir, path.join(homeDir, '.claude', 'hooks', 'gsd-statusline.js'));
+      process.stdout.write(buildOutput(data, {
+        homeDir,
+        playtimeRaw: process.env.GIELINOR_HOURS,
+        branch,
+        task,
+        gsdMiddle,
+      }));
+    } catch (e) {
+      // Silent fail — never break the statusline.
+    }
+  });
+}
+
+module.exports = {
+  renderBar, formatEffort, formatModel, shortenPath, formatPath,
+  formatPlaytime, composeLines, buildOutput, detectBranch,
+  readActiveTask, getGsdMiddle, writeBridge,
+};
+
+if (require.main === module) runStatusline();

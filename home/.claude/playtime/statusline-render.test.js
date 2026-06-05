@@ -295,3 +295,51 @@ test('getGsdMiddle: empty string (not crash) when formatGsdState returns empty',
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('writeBridge: writes used_pct = round(100 - remaining)', () => {
+  const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-bridge-'));
+  const session = 'sessBridge1';
+  try {
+    R.writeBridge({ context_window: { remaining_percentage: 92 } }, session, tmpHome);
+    const f = path.join(tmpHome, `claude-ctx-${session}.json`);
+    const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+    assert.equal(j.session_id, session);
+    assert.equal(j.remaining_percentage, 92);
+    assert.equal(j.used_pct, 8);
+  } finally {
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+  }
+});
+
+test('writeBridge: skips unsafe session ids and missing remaining', () => {
+  const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-bridge2-'));
+  try {
+    R.writeBridge({ context_window: {} }, 'noremaining', tmpHome);
+    assert.ok(!fs.existsSync(path.join(tmpHome, 'claude-ctx-noremaining.json')));
+    R.writeBridge({ context_window: { remaining_percentage: 50 } }, '../evil', tmpHome);
+    assert.equal(fs.readdirSync(tmpHome).length, 0);
+  } finally {
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+  }
+});
+
+test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
+  const input = JSON.stringify({
+    model: { display_name: 'Opus 4.8' },
+    effort: { level: 'high' },
+    workspace: { current_dir: os.homedir() },
+    context_window: { used_percentage: 30, remaining_percentage: 70 },
+    session_id: 'e2e-test',
+  });
+  const out = execSync(`node statusline-render.js`, {
+    cwd: __dirname,
+    input,
+    env: { ...process.env, GIELINOR_HOURS: '⏱ 66h' },
+  }).toString();
+  const lines = out.split('\n');
+  assert.equal(lines.length, 2);
+  assert.ok(lines[0].includes('Opus 4.8'));
+  assert.ok(lines[0].includes('effort: high'));
+  assert.ok(lines[1].includes('ctx '));
+  assert.ok(lines[1].includes('Hours spent in Gielinor: 66h'));
+});
