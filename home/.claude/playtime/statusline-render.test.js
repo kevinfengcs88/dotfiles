@@ -1,6 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const R = require('./statusline-render.js');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const { execSync } = require('child_process');
 
 const RESET = '\x1b[0m';
 
@@ -182,4 +186,23 @@ test('buildOutput: hides 5h bar when rate_limits absent', () => {
   });
   assert.ok(!out.includes('5h '));
   assert.ok(out.includes('ctx '));
+});
+
+test('detectBranch: empty string for non-repo dir', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-norepo-'));
+  try {
+    assert.equal(R.detectBranch(tmp), '');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('detectBranch: returns branch name inside a git repo', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-repo-'));
+  try {
+    execSync('git init -q -b testbranch', { cwd: tmp });
+    assert.equal(R.detectBranch(tmp), 'testbranch');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });

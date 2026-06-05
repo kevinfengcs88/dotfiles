@@ -112,4 +112,25 @@ function buildOutput(data, ctx) {
   });
 }
 
-module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines, buildOutput };
+// Current branch name, or '' outside a repo / on detached HEAD. Never throws.
+function detectBranch(dir) {
+  try {
+    const out = execSync(`git -C ${JSON.stringify(dir)} rev-parse --abbrev-ref HEAD`, {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim();
+    if (!out || out === 'HEAD') return '';
+    return out;
+  } catch (e) {
+    // Fallback for empty repos where rev-parse fails (git 2.34+)
+    try {
+      const out = execSync(`git -C ${JSON.stringify(dir)} symbolic-ref --short HEAD`, {
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).toString().trim();
+      return out || '';
+    } catch (e2) {
+      return '';
+    }
+  }
+}
+
+module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines, buildOutput, detectBranch };
