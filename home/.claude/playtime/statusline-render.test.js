@@ -93,7 +93,7 @@ test('composeLines: full two-line output', () => {
     model: '\x1b[2mOpus 4.8' + RESET,
     effort: '\x1b[33meffort: high' + RESET,
     branch: 'main',
-    path: '\x1b[2m~/x' + RESET,
+    pathSeg: '\x1b[2m~/x' + RESET,
     middle: '\x1b[1mtask' + RESET,
     ctxBar: 'CTX',
     usageBar: 'USE',
@@ -110,7 +110,7 @@ test('composeLines: degraded (no effort/branch/middle/usage)', () => {
     model: '\x1b[2mOpus 4.8' + RESET,
     effort: '',
     branch: '',
-    path: '\x1b[2m~/x' + RESET,
+    pathSeg: '\x1b[2m~/x' + RESET,
     middle: '',
     ctxBar: 'CTX',
     usageBar: '',
@@ -202,6 +202,16 @@ test('detectBranch: returns branch name inside a git repo', () => {
   try {
     execSync('git init -q -b testbranch', { cwd: tmp });
     assert.equal(R.detectBranch(tmp), 'testbranch');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('detectBranch: returns branch name via primary path (non-empty repo)', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-nonempty-'));
+  try {
+    execSync('git init -q -b mainbranch && git -c user.email=t@t -c user.name=t commit --allow-empty -m init', { cwd: tmp });
+    assert.equal(R.detectBranch(tmp), 'mainbranch');
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

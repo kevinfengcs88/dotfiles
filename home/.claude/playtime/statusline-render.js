@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
 const RESET = '\x1b[0m';
 const DIM = '\x1b[2m';
@@ -79,9 +79,9 @@ function formatPlaytime(raw) {
 
 // Line 1 = identity + location; Line 2 = meters + playtime.
 // Absent segments are dropped so separators never collapse to " │ │ ".
-function composeLines({ model, effort, branch, path, middle, ctxBar, usageBar, playtime }) {
+function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime }) {
   const id = effort ? `${model} · ${effort}` : model;
-  const line1 = [id, branch, path].filter(Boolean).join(' │ ');
+  const line1 = [id, branch, pathSeg].filter(Boolean).join(' │ ');
   const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';
   const usageSeg = usageBar ? `5h ${usageBar}` : '';
   const line2 = [middle, ctxSeg, usageSeg, playtime].filter(Boolean).join(' │ ');
@@ -107,7 +107,7 @@ function buildOutput(data, ctx) {
   const playtime = formatPlaytime(playtimeRaw);
 
   return composeLines({
-    model, effort, branch: branch || '', path: pathSeg,
+    model, effort, branch: branch || '', pathSeg,
     middle, ctxBar, usageBar, playtime,
   });
 }
@@ -115,21 +115,17 @@ function buildOutput(data, ctx) {
 // Current branch name, or '' outside a repo / on detached HEAD. Never throws.
 function detectBranch(dir) {
   try {
-    const out = execSync(`git -C ${JSON.stringify(dir)} rev-parse --abbrev-ref HEAD`, {
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).toString().trim();
-    if (!out || out === 'HEAD') return '';
-    return out;
-  } catch (e) {
-    // Fallback for empty repos where rev-parse fails (git 2.34+)
-    try {
-      const out = execSync(`git -C ${JSON.stringify(dir)} symbolic-ref --short HEAD`, {
-        stdio: ['ignore', 'pipe', 'ignore'],
-      }).toString().trim();
-      return out || '';
-    } catch (e2) {
-      return '';
+    const r = spawnSync('git', ['-C', dir, 'rev-parse', '--abbrev-ref', 'HEAD'],
+      { stdio: ['ignore', 'pipe', 'ignore'] });
+    let out = r.status === 0 ? r.stdout.toString().trim() : '';
+    if (!out || out === 'HEAD') {
+      const r2 = spawnSync('git', ['-C', dir, 'symbolic-ref', '--short', 'HEAD'],
+        { stdio: ['ignore', 'pipe', 'ignore'] });
+      out = r2.status === 0 ? r2.stdout.toString().trim() : '';
     }
+    return out === 'HEAD' ? '' : out;
+  } catch (e) {
+    return '';
   }
 }
 
@@ -163,6 +159,7 @@ function getGsdMiddle(dir, gsdPath) {
   try {
     if (!gsdPath || !fs.existsSync(gsdPath)) return '';
     const head = fs.readFileSync(gsdPath, 'utf8').slice(0, 2000);
+    // No version marker → treat as v1 (compatible). require() below is still try/catch-guarded.
     const m = head.match(/gsd-hook-version:\s*(\d+)\./);
     if (m && parseInt(m[1], 10) > GSD_MAX_MAJOR) return '';
     const mod = require(gsdPath);
@@ -215,7 +212,7 @@ function runStatusline() {
       const branch = detectBranch(dir);
       const claudeDir = process.env.CLAUDE_CONFIG_DIR || path.join(homeDir, '.claude');
       const task = readActiveTask(session, path.join(claudeDir, 'todos'));
-      const gsdMiddle = task ? '' : getGsdMiddle(dir, path.join(homeDir, '.claude', 'hooks', 'gsd-statusline.js'));
+      const gsdMiddle = task ? '' : getGsdMiddle(dir, path.join(claudeDir, 'hooks', 'gsd-statusline.js'));
       process.stdout.write(buildOutput(data, {
         homeDir,
         playtimeRaw: process.env.GIELINOR_HOURS,
