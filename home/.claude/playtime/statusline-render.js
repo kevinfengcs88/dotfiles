@@ -77,11 +77,25 @@ function formatPlaytime(raw) {
   return `Hours spent in Gielinor: ${v}`;
 }
 
-// Line 1 = identity + location; Line 2 = meters + playtime.
-// Absent segments are dropped so separators never collapse to " │ │ ".
-function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime }) {
-  const id = effort ? `${model} · ${effort}` : model;
-  const line1 = [id, branch, pathSeg].filter(Boolean).join(' │ ');
+// Visible width of a string, ignoring ANSI color codes. Line-1 content is all
+// single-width characters, so .length after stripping is accurate here.
+function visibleLen(s) {
+  return s.replace(/\x1b\[[0-9;]*m/g, '').length;
+}
+
+// Line 1 = identity + location, with effort flush-right (padded to `cols` when
+// the terminal width is known, else appended with a separator). Line 2 = meters
+// + playtime. Absent segments are dropped so separators never collapse to " │ │ ".
+function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime, cols }) {
+  const left = [model, branch, pathSeg].filter(Boolean).join(' │ ');
+  let line1 = left;
+  if (effort) {
+    const width = Number(cols) > 0 ? Math.floor(Number(cols)) : 0;
+    const gap = width - visibleLen(left) - visibleLen(effort);
+    line1 = gap >= 1
+      ? left + ' '.repeat(gap) + effort                 // flush-right to terminal edge
+      : [left, effort].filter(Boolean).join(' │ ');     // unknown width / no room → end-of-line
+  }
   const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';
   const usageSeg = usageBar ? `5h ${usageBar}` : '';
   const line2 = [middle, ctxSeg, usageSeg, playtime].filter(Boolean).join(' │ ');
@@ -90,7 +104,7 @@ function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar
 
 // Pure assembler: `data` is parsed stdin JSON; `ctx` carries all I/O results.
 function buildOutput(data, ctx) {
-  const { homeDir, playtimeRaw, branch, task, gsdMiddle } = ctx;
+  const { homeDir, playtimeRaw, branch, task, gsdMiddle, cols } = ctx;
   const model = formatModel(data.model && data.model.display_name);
   const effort = formatEffort(data.effort && data.effort.level);
   const dir = (data.workspace && data.workspace.current_dir) || '';
@@ -108,7 +122,7 @@ function buildOutput(data, ctx) {
 
   return composeLines({
     model, effort, branch: branch || '', pathSeg,
-    middle, ctxBar, usageBar, playtime,
+    middle, ctxBar, usageBar, playtime, cols,
   });
 }
 
@@ -219,6 +233,7 @@ function runStatusline() {
         branch,
         task,
         gsdMiddle,
+        cols: parseInt(process.env.COLUMNS || '0', 10),
       }));
     } catch (e) {
       // Silent fail — never break the statusline.

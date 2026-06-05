@@ -53,7 +53,7 @@ blinking 💀 red `>=80`.
 Full state (git repo, effort active, Pro/Max usage available):
 
 ```
-Opus 4.8 · effort: high │ main │ ~/dotfiles/home/.claude
+Opus 4.8 │ main │ ~/dotfiles/home/.claude            effort: high
 executing · auth (2/5) │ ctx ▓▓▓░░░░░░░ 38% │ 5h ▓▓░░░░░░░░ 22% │ Hours spent in Gielinor: 66h
 ```
 
@@ -64,7 +64,7 @@ Opus 4.8 │ ~/some/dir
 ctx ▓▓▓░░░░░░░ 38% │ Hours spent in Gielinor: 66h
 ```
 
-- **Line 1 — identity + location:** `model · effort │ branch │ path`
+- **Line 1 — identity + location:** `model │ branch │ path` with **`effort` flush-right** (padded to the terminal edge via the `COLUMNS` env var; falls back to ` │ effort` at end-of-line when width is unknown)
 - **Line 2 — meters + playtime:** `middle │ ctx-bar │ 5h-bar │ Hours spent in Gielinor: Nh`
 - Separator is ` │ ` (matches current style). Any absent segment is dropped
   cleanly — never render an empty ` │ │ `.
@@ -74,7 +74,7 @@ ctx ▓▓▓░░░░░░░ 38% │ Hours spent in Gielinor: 66h
 | Segment | Source | Style / behavior |
 |---|---|---|
 | Model | `model.display_name` | dim |
-| Effort | `effort.level` | `effort: <level>`, **color-coded by level**; hidden when absent (model without effort param) |
+| Effort | `effort.level` | `effort: <level>`, **color-coded by level**, **flush-right on line 1** (via `COLUMNS`; end-of-line fallback); hidden when absent (model without effort param) |
 | Branch | `git rev-parse --abbrev-ref HEAD` in cwd | **bare branch name, no glyph/marker**; hidden outside a repo and on detached HEAD |
 | Path | `workspace.current_dir` | `$HOME` collapsed to `~`; if deeper than 3 segments show `…/last/two/three`; dim |
 | Middle | active todo (bold) **or** GSD state (dim) | reuses GSD parsers via guarded require; hidden when neither present |
