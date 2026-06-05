@@ -143,6 +143,7 @@ alias video='yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4" --merge-outpu
 alias fcc='fcc-claude'
 alias ccusage='bunx ccusage'
 alias playtime='python3 "$HOME/dotfiles/.claude/playtime/playtime.py"'
+alias cusage='$HOME/scripts/fetch-usage.sh'
 
 function usage {
     if [[ "$OSTYPE" == darwin* ]]; then
