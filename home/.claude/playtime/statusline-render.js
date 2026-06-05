@@ -77,4 +77,15 @@ function formatPlaytime(raw) {
   return `Hours spent in Gielinor: ${v}`;
 }
 
-module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime };
+// Line 1 = identity + location; Line 2 = meters + playtime.
+// Absent segments are dropped so separators never collapse to " │ │ ".
+function composeLines({ model, effort, branch, path, middle, ctxBar, usageBar, playtime }) {
+  const id = effort ? `${model} · ${effort}` : model;
+  const line1 = [id, branch, path].filter(Boolean).join(' │ ');
+  const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';
+  const usageSeg = usageBar ? `5h ${usageBar}` : '';
+  const line2 = [middle, ctxSeg, usageSeg, playtime].filter(Boolean).join(' │ ');
+  return line2 ? `${line1}\n${line2}` : line1;
+}
+
+module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines };

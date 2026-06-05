@@ -83,3 +83,36 @@ test('formatPlaytime: defaults to 0h when empty', () => {
   assert.equal(R.formatPlaytime(''), 'Hours spent in Gielinor: 0h');
   assert.equal(R.formatPlaytime(undefined), 'Hours spent in Gielinor: 0h');
 });
+
+test('composeLines: full two-line output', () => {
+  const out = R.composeLines({
+    model: '\x1b[2mOpus 4.8' + RESET,
+    effort: '\x1b[33meffort: high' + RESET,
+    branch: 'main',
+    path: '\x1b[2m~/x' + RESET,
+    middle: '\x1b[1mtask' + RESET,
+    ctxBar: 'CTX',
+    usageBar: 'USE',
+    playtime: 'Hours spent in Gielinor: 66h',
+  });
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' · \x1b[33meffort: high' + RESET +
+    ' │ main │ \x1b[2m~/x' + RESET;
+  const line2 = '\x1b[1mtask' + RESET + ' │ ctx CTX │ 5h USE │ Hours spent in Gielinor: 66h';
+  assert.equal(out, line1 + '\n' + line2);
+});
+
+test('composeLines: degraded (no effort/branch/middle/usage)', () => {
+  const out = R.composeLines({
+    model: '\x1b[2mOpus 4.8' + RESET,
+    effort: '',
+    branch: '',
+    path: '\x1b[2m~/x' + RESET,
+    middle: '',
+    ctxBar: 'CTX',
+    usageBar: '',
+    playtime: 'Hours spent in Gielinor: 66h',
+  });
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[2m~/x' + RESET;
+  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
+  assert.equal(out, line1 + '\n' + line2);
+});
