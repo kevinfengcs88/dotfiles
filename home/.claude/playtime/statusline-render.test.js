@@ -237,3 +237,61 @@ test('readActiveTask: empty when no matching file or no in_progress', () => {
 test('readActiveTask: empty when todosDir missing', () => {
   assert.equal(R.readActiveTask('s', '/nonexistent/dir/xyz'), '');
 });
+
+test('getGsdMiddle: empty when module path missing', () => {
+  assert.equal(R.getGsdMiddle('/some/dir', '/nonexistent/gsd.js'), '');
+});
+
+test('getGsdMiddle: dim-wrapped state from a compatible stub module', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-gsd-'));
+  try {
+    const stub = path.join(tmp, 'gsd-statusline.js');
+    fs.writeFileSync(stub,
+      '// gsd-hook-version: 1.2.0\n' +
+      'module.exports = {\n' +
+      '  readGsdState: () => ({ ok: true }),\n' +
+      '  formatGsdState: (s) => s.ok ? "executing · auth (2/5)" : "",\n' +
+      '};\n');
+    assert.equal(R.getGsdMiddle('/whatever', stub),
+      '\x1b[2mexecuting · auth (2/5)' + RESET);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('getGsdMiddle: empty when version major exceeds ceiling', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-gsd-hi-'));
+  try {
+    const stub = path.join(tmp, 'gsd-statusline.js');
+    fs.writeFileSync(stub,
+      '// gsd-hook-version: 9.0.0\n' +
+      'module.exports = { readGsdState: () => ({}), formatGsdState: () => "X" };\n');
+    assert.equal(R.getGsdMiddle('/whatever', stub), '');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('getGsdMiddle: empty when exports are not functions', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-gsd-bad-'));
+  try {
+    const stub = path.join(tmp, 'gsd-statusline.js');
+    fs.writeFileSync(stub, '// gsd-hook-version: 1.0.0\nmodule.exports = { nope: 1 };\n');
+    assert.equal(R.getGsdMiddle('/whatever', stub), '');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('getGsdMiddle: empty string (not crash) when formatGsdState returns empty', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-gsd-empty-'));
+  try {
+    const stub = path.join(tmp, 'gsd-statusline.js');
+    fs.writeFileSync(stub,
+      '// gsd-hook-version: 1.2.0\n' +
+      'module.exports = { readGsdState: () => ({}), formatGsdState: () => "" };\n');
+    assert.equal(R.getGsdMiddle('/whatever', stub), '');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

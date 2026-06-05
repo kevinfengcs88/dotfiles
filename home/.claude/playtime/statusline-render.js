@@ -152,4 +152,30 @@ function readActiveTask(session, todosDir) {
   }
 }
 
-module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines, buildOutput, detectBranch, readActiveTask };
+// Highest gsd-hook-version MAJOR we have validated the export API against.
+// If a /gsd-update ships a higher major, skip the GSD middle rather than risk
+// calling a changed API.
+const GSD_MAX_MAJOR = 2;
+
+// Guarded require of the GSD-owned statusline module for its STATE.md parsers.
+// Returns a dim-wrapped milestone/phase string, or '' on any incompatibility.
+function getGsdMiddle(dir, gsdPath) {
+  try {
+    if (!gsdPath || !fs.existsSync(gsdPath)) return '';
+    const head = fs.readFileSync(gsdPath, 'utf8').slice(0, 2000);
+    const m = head.match(/gsd-hook-version:\s*(\d+)\./);
+    if (m && parseInt(m[1], 10) > GSD_MAX_MAJOR) return '';
+    const mod = require(gsdPath);
+    if (typeof mod.readGsdState !== 'function' || typeof mod.formatGsdState !== 'function') {
+      return '';
+    }
+    const state = mod.readGsdState(dir);
+    if (!state) return '';
+    const s = mod.formatGsdState(state);
+    return s ? `${DIM}${s}${RESET}` : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines, buildOutput, detectBranch, readActiveTask, getGsdMiddle };
