@@ -206,3 +206,34 @@ test('detectBranch: returns branch name inside a git repo', () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('readActiveTask: returns activeForm of in_progress item', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-todos-'));
+  try {
+    const session = 'sess123';
+    const file = path.join(tmp, `${session}-agent-abc.json`);
+    fs.writeFileSync(file, JSON.stringify([
+      { status: 'completed', activeForm: 'Done thing' },
+      { status: 'in_progress', activeForm: 'Building widget' },
+    ]));
+    assert.equal(R.readActiveTask(session, tmp), 'Building widget');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('readActiveTask: empty when no matching file or no in_progress', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-todos2-'));
+  try {
+    assert.equal(R.readActiveTask('nope', tmp), '');
+    const file = path.join(tmp, 'sess9-agent-x.json');
+    fs.writeFileSync(file, JSON.stringify([{ status: 'pending', activeForm: 'Later' }]));
+    assert.equal(R.readActiveTask('sess9', tmp), '');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('readActiveTask: empty when todosDir missing', () => {
+  assert.equal(R.readActiveTask('s', '/nonexistent/dir/xyz'), '');
+});

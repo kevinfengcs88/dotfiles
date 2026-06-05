@@ -133,4 +133,23 @@ function detectBranch(dir) {
   }
 }
 
-module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines, buildOutput, detectBranch };
+// Newest <session>*-agent-*.json in todosDir; first in_progress item's activeForm.
+function readActiveTask(session, todosDir) {
+  if (!session || !fs.existsSync(todosDir)) return '';
+  try {
+    let latest = null;
+    for (const entry of fs.readdirSync(todosDir)) {
+      if (!entry.startsWith(session) || !entry.includes('-agent-') || !entry.endsWith('.json')) continue;
+      const mtime = fs.statSync(path.join(todosDir, entry)).mtime;
+      if (!latest || mtime > latest.mtime) latest = { name: entry, mtime };
+    }
+    if (!latest) return '';
+    const todos = JSON.parse(fs.readFileSync(path.join(todosDir, latest.name), 'utf8'));
+    const inProgress = todos.find((t) => t.status === 'in_progress');
+    return (inProgress && inProgress.activeForm) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines, buildOutput, detectBranch, readActiveTask };
