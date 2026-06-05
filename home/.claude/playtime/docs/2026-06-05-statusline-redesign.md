@@ -65,12 +65,12 @@ test('renderBar: orange 65-79', () => {
   assert.equal(R.renderBar(70), '\x1b[38;5;208m███████░░░ 70%' + RESET);
 });
 
-test('renderBar: blinking red + skull at 80+', () => {
-  assert.equal(R.renderBar(80), '\x1b[5;31m💀 ████████░░ 80%' + RESET);
+test('renderBar: blinking red at 80+', () => {
+  assert.equal(R.renderBar(80), '\x1b[5;31m████████░░ 80%' + RESET);
 });
 
 test('renderBar: clamps and rounds', () => {
-  assert.equal(R.renderBar(120), '\x1b[5;31m💀 ██████████ 100%' + RESET);
+  assert.equal(R.renderBar(120), '\x1b[5;31m██████████ 100%' + RESET);
   assert.equal(R.renderBar(37.6), '\x1b[32m███░░░░░░░ 38%' + RESET);
 });
 
@@ -122,8 +122,7 @@ function renderBar(pct) {
   const p = Math.max(0, Math.min(100, Math.round(Number(pct))));
   const filled = Math.floor(p / 10);
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
-  const skull = p >= 80 ? '💀 ' : '';
-  return `${colorFor(p)}${skull}${bar} ${p}%${RESET}`;
+  return `${colorFor(p)}${bar} ${p}%${RESET}`;
 }
 
 module.exports = { renderBar };

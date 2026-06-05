@@ -30,7 +30,7 @@ The wrapper (`playtime-statusline.sh`) currently:
 `gsd-statusline.js` renders a single line:
 `model │ (todo task OR GSD milestone·status·phase) │ dirname [context bar]`
 with the context bar colored green `<50` / yellow `<65` / orange `<80` /
-blinking 💀 red `>=80`.
+blinking red `>=80`.
 
 ### Directory ownership (verified)
 
@@ -100,14 +100,14 @@ ctx ▓▓▓░░░░░░░ 38% │ Hours spent in Gielinor: 66h
 | `< 40` | green |
 | `40–64` | yellow |
 | `65–79` | orange |
-| `>= 80` | blinking red, prefixed with 💀 |
+| `>= 80` | blinking red |
 
 The only change from the current statusline is the green cutoff moving from
 `< 50` to `< 40`. The same threshold logic is reused for the new 5h usage bar.
 
 ANSI codes (preserved from the current implementation):
 - green `\x1b[32m`, yellow `\x1b[33m`, orange `\x1b[38;5;208m`,
-  blinking red `\x1b[5;31m` (with leading `💀 `), reset `\x1b[0m`, dim `\x1b[2m`,
+  blinking red `\x1b[5;31m`, reset `\x1b[0m`, dim `\x1b[2m`,
   bold `\x1b[1m`.
 
 ## Architecture

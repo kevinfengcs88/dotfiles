@@ -29,8 +29,7 @@ function renderBar(pct) {
   const p = Math.max(0, Math.min(100, Math.round(Number(pct))));
   const filled = Math.floor(p / 10);
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
-  const skull = p >= 80 ? '💀 ' : '';
-  return `${colorFor(p)}${skull}${bar} ${p}%${RESET}`;
+  return `${colorFor(p)}${bar} ${p}%${RESET}`;
 }
 
 const RED = '\x1b[31m';
