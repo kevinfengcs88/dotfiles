@@ -88,4 +88,28 @@ function composeLines({ model, effort, branch, path, middle, ctxBar, usageBar, p
   return line2 ? `${line1}\n${line2}` : line1;
 }
 
-module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines };
+// Pure assembler: `data` is parsed stdin JSON; `ctx` carries all I/O results.
+function buildOutput(data, ctx) {
+  const { homeDir, playtimeRaw, branch, task, gsdMiddle } = ctx;
+  const model = formatModel(data.model && data.model.display_name);
+  const effort = formatEffort(data.effort && data.effort.level);
+  const dir = (data.workspace && data.workspace.current_dir) || '';
+  const pathSeg = formatPath(dir, homeDir);
+
+  const ctxPct = data.context_window && data.context_window.used_percentage;
+  const ctxBar = ctxPct == null ? '' : renderBar(ctxPct);
+
+  const usagePct = data.rate_limits && data.rate_limits.five_hour &&
+    data.rate_limits.five_hour.used_percentage;
+  const usageBar = usagePct == null ? '' : renderBar(usagePct);
+
+  const middle = task ? `${BOLD}${task}${RESET}` : (gsdMiddle || '');
+  const playtime = formatPlaytime(playtimeRaw);
+
+  return composeLines({
+    model, effort, branch: branch || '', path: pathSeg,
+    middle, ctxBar, usageBar, playtime,
+  });
+}
+
+module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime, composeLines, buildOutput };

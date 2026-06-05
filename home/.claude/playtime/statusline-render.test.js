@@ -116,3 +116,70 @@ test('composeLines: degraded (no effort/branch/middle/usage)', () => {
   const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
 });
+
+test('buildOutput: assembles full line from data + injected I/O', () => {
+  const data = {
+    model: { display_name: 'Opus 4.8' },
+    effort: { level: 'high' },
+    workspace: { current_dir: '/home/kevin/proj' },
+    context_window: { used_percentage: 38 },
+    rate_limits: { five_hour: { used_percentage: 22 } },
+  };
+  const out = R.buildOutput(data, {
+    homeDir: '/home/kevin',
+    playtimeRaw: '⏱ 66h',
+    branch: 'main',
+    task: null,
+    gsdMiddle: '\x1b[2mexecuting · auth (2/5)' + RESET,
+  });
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' · \x1b[33meffort: high' + RESET +
+    ' │ main │ \x1b[2m~/proj' + RESET;
+  const line2 = '\x1b[2mexecuting · auth (2/5)' + RESET +
+    ' │ ctx \x1b[32m███░░░░░░░ 38%' + RESET +
+    ' │ 5h \x1b[32m██░░░░░░░░ 22%' + RESET +
+    ' │ Hours spent in Gielinor: 66h';
+  assert.equal(out, line1 + '\n' + line2);
+});
+
+test('buildOutput: active task (bold) takes precedence over gsd middle', () => {
+  const data = {
+    model: { display_name: 'Opus 4.8' },
+    workspace: { current_dir: '/home/kevin/proj' },
+    context_window: { used_percentage: 10 },
+  };
+  const out = R.buildOutput(data, {
+    homeDir: '/home/kevin',
+    playtimeRaw: '⏱ 5h',
+    branch: '',
+    task: 'Refactoring auth',
+    gsdMiddle: '\x1b[2mSHOULD NOT APPEAR' + RESET,
+  });
+  assert.ok(out.includes('\x1b[1mRefactoring auth' + RESET));
+  assert.ok(!out.includes('SHOULD NOT APPEAR'));
+});
+
+test('buildOutput: hides ctx bar when used_percentage is null', () => {
+  const data = {
+    model: { display_name: 'Opus 4.8' },
+    workspace: { current_dir: '/home/kevin/proj' },
+    context_window: { used_percentage: null },
+  };
+  const out = R.buildOutput(data, {
+    homeDir: '/home/kevin', playtimeRaw: '⏱ 1h', branch: '', task: null, gsdMiddle: '',
+  });
+  assert.ok(!out.includes('ctx '));
+  assert.ok(out.includes('Hours spent in Gielinor: 1h'));
+});
+
+test('buildOutput: hides 5h bar when rate_limits absent', () => {
+  const data = {
+    model: { display_name: 'Opus 4.8' },
+    workspace: { current_dir: '/home/kevin/proj' },
+    context_window: { used_percentage: 30 },
+  };
+  const out = R.buildOutput(data, {
+    homeDir: '/home/kevin', playtimeRaw: '⏱ 1h', branch: '', task: null, gsdMiddle: '',
+  });
+  assert.ok(!out.includes('5h '));
+  assert.ok(out.includes('ctx '));
+});
