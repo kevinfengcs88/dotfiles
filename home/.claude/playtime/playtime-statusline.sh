@@ -38,8 +38,12 @@ fi
 PLAY="$(cat "$CACHE" 2>/dev/null || echo '⏱ 0h')"
 
 # 3) Render the two-line statusline, or degrade to a playtime-only line.
-if [ -n "${NODE_BIN:-}" ] && [ -f "$RENDER" ]; then
-  printf '%s' "$INPUT" | GIELINOR_HOURS="$PLAY" "$NODE_BIN" "$RENDER"
+OUT=""
+if [ -n "${NODE_BIN:-}" ] && [ -x "${NODE_BIN}" ] && [ -f "$RENDER" ]; then
+  OUT="$(printf '%s' "$INPUT" | GIELINOR_HOURS="$PLAY" "$NODE_BIN" "$RENDER" 2>/dev/null)"
+fi
+if [ -n "$OUT" ]; then
+  printf '%s' "$OUT"
 else
   printf 'Hours spent in Gielinor: %s' "${PLAY#⏱ }"
 fi
