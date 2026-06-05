@@ -88,35 +88,20 @@ test('formatPlaytime: defaults to 0h when empty', () => {
   assert.equal(R.formatPlaytime(undefined), 'Hours spent in Gielinor: 0h');
 });
 
-test('composeLines: effort flush-right when cols is known', () => {
-  const model = '\x1b[2mOpus 4.8' + RESET;       // visible "Opus 4.8" (8)
-  const effort = '\x1b[33meffort: high' + RESET; // visible "effort: high" (12)
-  const pathSeg = '\x1b[2m~/x' + RESET;          // visible "~/x" (3)
+test('composeLines: full two-line output (effort inline next to model)', () => {
   const out = R.composeLines({
-    model, effort, branch: 'main', pathSeg,
-    middle: '\x1b[1mtask' + RESET, ctxBar: 'CTX', usageBar: 'USE',
-    playtime: 'Hours spent in Gielinor: 66h', cols: 50,
+    model: '\x1b[2mOpus 4.8' + RESET,
+    effort: '\x1b[33meffort: high' + RESET,
+    branch: 'main',
+    pathSeg: '\x1b[2m~/x' + RESET,
+    middle: '\x1b[1mtask' + RESET,
+    ctxBar: 'CTX',
+    usageBar: 'USE',
+    playtime: 'Hours spent in Gielinor: 66h',
   });
-  const left = model + ' │ main │ ' + pathSeg;   // visible length 21
-  const gap = (50 - 1) - 21 - 12;                 // pad so effort sits one column shy of the edge
-  const line1 = left + ' '.repeat(gap) + effort;
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' · \x1b[33meffort: high' + RESET +
+    ' │ main │ \x1b[2m~/x' + RESET;
   const line2 = '\x1b[1mtask' + RESET + ' │ ctx CTX │ 5h USE │ Hours spent in Gielinor: 66h';
-  assert.equal(out, line1 + '\n' + line2);
-  // Line 1 visible width fills to cols-1 (final column reserved to avoid wrap/truncation).
-  assert.equal(out.split('\n')[0].replace(/\x1b\[[0-9;]*m/g, '').length, 49);
-});
-
-test('composeLines: effort falls back to end-of-line when cols unknown', () => {
-  const model = '\x1b[2mOpus 4.8' + RESET;
-  const effort = '\x1b[33meffort: high' + RESET;
-  const pathSeg = '\x1b[2m~/x' + RESET;
-  const out = R.composeLines({
-    model, effort, branch: 'main', pathSeg,
-    middle: '', ctxBar: 'CTX', usageBar: '',
-    playtime: 'Hours spent in Gielinor: 66h', cols: 0,
-  });
-  const line1 = model + ' │ main │ ' + pathSeg + ' │ ' + effort;
-  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
 });
 
@@ -151,32 +136,13 @@ test('buildOutput: assembles full line from data + injected I/O', () => {
     task: null,
     gsdMiddle: '\x1b[2mexecuting · auth (2/5)' + RESET,
   });
-  // No cols passed → effort falls back to end-of-line on line 1.
-  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ main │ \x1b[2m~/proj' + RESET +
-    ' │ \x1b[33meffort: high' + RESET;
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' · \x1b[33meffort: high' + RESET +
+    ' │ main │ \x1b[2m~/proj' + RESET;
   const line2 = '\x1b[2mexecuting · auth (2/5)' + RESET +
     ' │ ctx \x1b[32m███░░░░░░░ 38%' + RESET +
     ' │ 5h \x1b[32m██░░░░░░░░ 22%' + RESET +
     ' │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
-});
-
-test('buildOutput: passes cols through so effort is flush-right', () => {
-  const data = {
-    model: { display_name: 'Opus 4.8' },
-    effort: { level: 'high' },
-    workspace: { current_dir: '/home/kevin/proj' },
-    context_window: { used_percentage: 38 },
-  };
-  const out = R.buildOutput(data, {
-    homeDir: '/home/kevin', playtimeRaw: '⏱ 66h',
-    branch: 'main', task: null, gsdMiddle: '', cols: 60,
-  });
-  const first = out.split('\n')[0];
-  // Effort sits one column shy of the right edge (final column reserved); ends with effort text.
-  assert.equal(first.replace(/\x1b\[[0-9;]*m/g, '').length, 59);
-  assert.ok(first.endsWith('\x1b[33meffort: high' + RESET));
-  assert.ok(!first.includes(' · ')); // no longer prefixed onto the model
 });
 
 test('buildOutput: active task (bold) takes precedence over gsd middle', () => {
