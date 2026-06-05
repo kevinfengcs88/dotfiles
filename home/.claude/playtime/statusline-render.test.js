@@ -341,7 +341,7 @@ test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
     context_window: { used_percentage: 30, remaining_percentage: 70 },
     session_id: 'e2e-test',
   });
-  const out = execSync(`node statusline-render.js`, {
+  const out = execSync(`${JSON.stringify(process.execPath)} statusline-render.js`, {
     cwd: __dirname,
     input,
     env: { ...process.env, GIELINOR_HOURS: '⏱ 66h' },

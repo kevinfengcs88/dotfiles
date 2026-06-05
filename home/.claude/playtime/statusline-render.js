@@ -181,7 +181,7 @@ function writeBridge(data, session, tmpDir) {
   try {
     const remaining = data.context_window && data.context_window.remaining_percentage;
     if (remaining == null) return;
-    const safe = session && !/[/\\]|\.\./.test(session);
+    const safe = session && !/[/\\\n\r]|\.\./.test(session);
     if (!safe) return;
     const dir = tmpDir || os.tmpdir();
     const bridgePath = path.join(dir, `claude-ctx-${session}.json`);
