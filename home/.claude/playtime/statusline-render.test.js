@@ -73,3 +73,13 @@ test('formatPath: wraps shortenPath in dim', () => {
     '\x1b[2m~/proj' + RESET);
   assert.equal(R.formatPath('', '/home/kevin'), '');
 });
+
+test('formatPlaytime: strips stopwatch icon, adds Gielinor label', () => {
+  assert.equal(R.formatPlaytime('⏱ 66h'), 'Hours spent in Gielinor: 66h');
+  assert.equal(R.formatPlaytime('66h'), 'Hours spent in Gielinor: 66h');
+});
+
+test('formatPlaytime: defaults to 0h when empty', () => {
+  assert.equal(R.formatPlaytime(''), 'Hours spent in Gielinor: 0h');
+  assert.equal(R.formatPlaytime(undefined), 'Hours spent in Gielinor: 0h');
+});

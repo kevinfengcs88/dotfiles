@@ -71,4 +71,10 @@ function formatPath(dir, home) {
   return `${DIM}${shortenPath(dir, home)}${RESET}`;
 }
 
-module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath };
+// The cache value looks like "⏱ 66h"; strip the icon and relabel.
+function formatPlaytime(raw) {
+  const v = String(raw || '').replace(/^⏱\s*/, '').trim() || '0h';
+  return `Hours spent in Gielinor: ${v}`;
+}
+
+module.exports = { renderBar, formatEffort, formatModel, shortenPath, formatPath, formatPlaytime };
