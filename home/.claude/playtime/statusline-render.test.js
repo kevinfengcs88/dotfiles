@@ -433,7 +433,41 @@ test('composeLines: no quote key => unchanged two-line output', () => {
   assert.equal(out, line1 + '\n' + line2);
 });
 
-test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
+test('buildOutput: appends a deterministic dim quote third line', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-bo-quote-'));
+  try {
+    const qf = path.join(tmp, 'quotes.md');
+    fs.writeFileSync(qf, '## S\n- "Only quote." —Z\n');
+    const data = {
+      model: { display_name: 'Opus 4.8' },
+      workspace: { current_dir: '/home/kevin/proj' },
+      context_window: { used_percentage: 10 },
+    };
+    const out = R.buildOutput(data, {
+      homeDir: '/home/kevin', playtimeRaw: '⏱ 5h', branch: '', task: null,
+      gsdMiddle: '', quotesPath: qf, session: 'whatever',
+    });
+    const lines = out.split('\n');
+    assert.equal(lines.length, 3);
+    assert.equal(lines[2], '\x1b[2m"Only quote." —Z' + RESET);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('buildOutput: no quotesPath => unchanged two-line output', () => {
+  const data = {
+    model: { display_name: 'Opus 4.8' },
+    workspace: { current_dir: '/home/kevin/proj' },
+    context_window: { used_percentage: 10 },
+  };
+  const out = R.buildOutput(data, {
+    homeDir: '/home/kevin', playtimeRaw: '⏱ 5h', branch: '', task: null, gsdMiddle: '',
+  });
+  assert.equal(out.split('\n').length, 2);
+});
+
+test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', () => {
   const input = JSON.stringify({
     model: { display_name: 'Opus 4.8' },
     effort: { level: 'high' },
@@ -447,9 +481,10 @@ test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
     env: { ...process.env, GIELINOR_HOURS: '⏱ 66h' },
   }).toString();
   const lines = out.split('\n');
-  assert.equal(lines.length, 2);
+  assert.equal(lines.length, 3);
   assert.ok(lines[0].includes('Opus 4.8'));
   assert.ok(lines[0].includes('effort: high'));
   assert.ok(lines[1].includes('ctx '));
   assert.ok(lines[1].includes('Hours spent in Gielinor: 66h'));
+  assert.ok(lines[2].includes('"')); // a quote on line 3
 });

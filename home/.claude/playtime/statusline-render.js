@@ -132,7 +132,7 @@ function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar
 
 // Pure assembler: `data` is parsed stdin JSON; `ctx` carries all I/O results.
 function buildOutput(data, ctx) {
-  const { homeDir, playtimeRaw, branch, task, gsdMiddle } = ctx;
+  const { homeDir, playtimeRaw, branch, task, gsdMiddle, quotesPath, session } = ctx;
   const model = formatModel(data.model && data.model.display_name);
   const effort = formatEffort(data.effort && data.effort.level);
   const dir = (data.workspace && data.workspace.current_dir) || '';
@@ -148,9 +148,12 @@ function buildOutput(data, ctx) {
   const middle = task ? `${BOLD}${task}${RESET}` : (gsdMiddle || '');
   const playtime = formatPlaytime(playtimeRaw);
 
+  const picked = pickQuote(loadQuotes(quotesPath), session);
+  const quote = picked ? `${DIM}${picked}${RESET}` : '';
+
   return composeLines({
     model, effort, branch: branch || '', pathSeg,
-    middle, ctxBar, usageBar, playtime,
+    middle, ctxBar, usageBar, playtime, quote,
   });
 }
 
@@ -261,6 +264,8 @@ function runStatusline() {
         branch,
         task,
         gsdMiddle,
+        quotesPath: path.join(__dirname, 'quotes.md'),
+        session,
       }));
     } catch (e) {
       // Silent fail — never break the statusline.
