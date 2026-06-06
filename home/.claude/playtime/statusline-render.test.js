@@ -496,6 +496,30 @@ test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', 
   assert.ok(lines[2].includes('"')); // a quote on line 3
 });
 
+test('runStatusline: honors QUOTES_FILE env over the __dirname default', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-qfile-'));
+  try {
+    const qf = path.join(tmp, 'quotes.md');
+    fs.writeFileSync(qf, '## S\n- "Env quote wins." —Test\n');
+    const input = JSON.stringify({
+      model: { display_name: 'Opus 4.8' },
+      workspace: { current_dir: os.homedir() },
+      context_window: { used_percentage: 10, remaining_percentage: 90 },
+      session_id: 'qfile-test',
+    });
+    const out = execSync(`${JSON.stringify(process.execPath)} statusline-render.js`, {
+      cwd: __dirname,
+      input,
+      env: { ...process.env, GIELINOR_HOURS: '⏱ 1h', QUOTES_FILE: qf, COLUMNS: '200' },
+    }).toString();
+    const lines = out.split('\n');
+    assert.equal(lines.length, 3);
+    assert.ok(lines[2].includes('"Env quote wins." —Test'));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test('wrapText: short text returns a single line', () => {
   assert.deepEqual(R.wrapText('short enough', 80), ['short enough']);
 });

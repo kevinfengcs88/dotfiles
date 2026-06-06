@@ -305,7 +305,10 @@ function runStatusline() {
         branch,
         task,
         gsdMiddle,
-        quotesPath: path.join(__dirname, 'quotes.md'),
+        // The wrapper passes QUOTES_FILE resolved next to itself (works whether
+        // run from the repo or a stowed ~/.claude/playtime). Fall back to
+        // __dirname for direct invocation (e.g. tests).
+        quotesPath: process.env.QUOTES_FILE || path.join(__dirname, 'quotes.md'),
         session,
         columns,
       }));
