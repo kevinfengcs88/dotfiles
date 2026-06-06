@@ -54,6 +54,24 @@ function hash(str) {
   return h >>> 0;
 }
 
+// Parse curated quote bullets from quotes.md. Only the region BEFORE the
+// "# Recommended additional sources" heading is read, so staging samples never
+// reach the statusline. Returns [] on any error (missing/unreadable file).
+function loadQuotes(quotesPath) {
+  try {
+    const raw = fs.readFileSync(quotesPath, 'utf8');
+    const cutoff = raw.indexOf('# Recommended additional sources');
+    const region = cutoff === -1 ? raw : raw.slice(0, cutoff);
+    return region
+      .split('\n')
+      .filter((line) => /^- "/.test(line))
+      .map((line) => line.replace(/^- /, '').trim())
+      .filter(Boolean);
+  } catch (e) {
+    return [];
+  }
+}
+
 // Deterministic per-session quote selection. Empty/absent list => ''.
 // Missing/empty session => index 0.
 function pickQuote(quotes, session) {
@@ -251,7 +269,7 @@ module.exports = {
   renderBar, formatEffort, formatModel, shortenPath, formatPath,
   formatPlaytime, composeLines, buildOutput, detectBranch,
   readActiveTask, getGsdMiddle, writeBridge,
-  hash, pickQuote,
+  hash, loadQuotes, pickQuote,
 };
 
 if (require.main === module) runStatusline();

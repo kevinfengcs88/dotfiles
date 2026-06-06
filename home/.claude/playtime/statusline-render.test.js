@@ -365,6 +365,40 @@ test('pickQuote: different sessions spread across the list', () => {
   assert.ok(seen.size >= 6); // good distribution across 8 slots
 });
 
+test('loadQuotes: parses "- \\"..\\"" bullets, ignores headings/prose', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-quotes-'));
+  try {
+    const f = path.join(tmp, 'quotes.md');
+    fs.writeFileSync(f,
+      '# Title\n\nSome prose.\n\n## Source\n\n' +
+      '- "First quote." —A\n' +
+      '- "Second quote." —B\n' +
+      '- a non-quote bullet\n');
+    assert.deepEqual(R.loadQuotes(f), ['"First quote." —A', '"Second quote." —B']);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('loadQuotes: stops at the Recommended additional sources heading', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-quotes-cut-'));
+  try {
+    const f = path.join(tmp, 'quotes.md');
+    fs.writeFileSync(f,
+      '## Live\n- "Live one." —X\n\n' +
+      '# Recommended additional sources\n' +
+      '### Seneca\n- "Sample do not show." —Seneca\n');
+    assert.deepEqual(R.loadQuotes(f), ['"Live one." —X']);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('loadQuotes: missing or unreadable file returns []', () => {
+  assert.deepEqual(R.loadQuotes('/nonexistent/dir/quotes.md'), []);
+  assert.deepEqual(R.loadQuotes(undefined), []);
+});
+
 test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
   const input = JSON.stringify({
     model: { display_name: 'Opus 4.8' },
