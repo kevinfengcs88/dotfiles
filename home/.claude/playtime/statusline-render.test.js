@@ -35,6 +35,13 @@ test('renderBar: empty string for null/NaN', () => {
   assert.equal(R.renderBar(NaN), '');
 });
 
+test('renderBar: explicit color overrides threshold coloring at any value', () => {
+  const DIM = '\x1b[2m';
+  assert.equal(R.renderBar(22, DIM), DIM + '██░░░░░░░░ 22%' + RESET);
+  // A high value that would normally blink red stays neutral when overridden.
+  assert.equal(R.renderBar(95, DIM), DIM + '█████████░ 95%' + RESET);
+});
+
 test('formatEffort: color-coded by level', () => {
   assert.equal(R.formatEffort('low'), '\x1b[32meffort: low' + RESET);
   assert.equal(R.formatEffort('medium'), '\x1b[32meffort: medium' + RESET);
@@ -139,7 +146,7 @@ test('buildOutput: assembles full line from data + injected I/O', () => {
   const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[33meffort: high' + RESET +
     ' │ main │ \x1b[2m~/proj' + RESET + ' │ \x1b[2mexecuting · auth (2/5)' + RESET;
   const line2 = 'ctx \x1b[32m███░░░░░░░ 38%' + RESET +
-    ' │ 5h \x1b[32m██░░░░░░░░ 22%' + RESET +
+    ' │ 5h \x1b[2m██░░░░░░░░ 22%' + RESET +
     ' │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
 });

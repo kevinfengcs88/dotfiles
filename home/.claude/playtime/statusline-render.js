@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Playtime two-line statusline renderer (user-owned; see docs/2026-06-05-statusline-redesign-design.md).
-// Reads Claude Code statusline JSON on stdin, prints two lines on stdout.
+// Reads Claude Code statusline JSON on stdin, prints two or three lines on stdout.
 
 const fs = require('fs');
 const path = require('path');
@@ -15,7 +15,9 @@ const YELLOW = '\x1b[33m';
 const ORANGE = '\x1b[38;5;208m';
 const BLINK_RED = '\x1b[5;31m';
 
-// Shared threshold color for both the context and 5h usage bars.
+// Threshold color for the actionable context bar (green→blinking red as it
+// fills). The 5h usage bar is informational, not actionable, so it does NOT use
+// this — it renders in a neutral DIM regardless of value (see buildOutput).
 function colorFor(pct) {
   if (pct < 40) return GREEN;
   if (pct < 65) return YELLOW;
@@ -23,13 +25,14 @@ function colorFor(pct) {
   return BLINK_RED;
 }
 
-// 10-segment bar identical to the legacy context meter (█ filled / ░ empty).
-function renderBar(pct) {
+// 10-segment bar (█ filled / ░ empty). Defaults to threshold coloring; pass an
+// explicit `color` to override it with a fixed color (e.g. neutral DIM).
+function renderBar(pct, color) {
   if (pct == null || Number.isNaN(Number(pct))) return '';
   const p = Math.max(0, Math.min(100, Math.round(Number(pct))));
   const filled = Math.floor(p / 10);
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
-  return `${colorFor(p)}${bar} ${p}%${RESET}`;
+  return `${color || colorFor(p)}${bar} ${p}%${RESET}`;
 }
 
 const RED = '\x1b[31m';
@@ -143,7 +146,9 @@ function buildOutput(data, ctx) {
 
   const usagePct = data.rate_limits && data.rate_limits.five_hour &&
     data.rate_limits.five_hour.used_percentage;
-  const usageBar = usagePct == null ? '' : renderBar(usagePct);
+  // 5h usage is informational, not actionable — always neutral DIM, never the
+  // ctx threshold colors, so only the ctx bar's color signals "run /compact".
+  const usageBar = usagePct == null ? '' : renderBar(usagePct, DIM);
 
   const middle = task ? `${BOLD}${task}${RESET}` : (gsdMiddle || '');
   const playtime = formatPlaytime(playtimeRaw);
