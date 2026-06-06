@@ -17,9 +17,9 @@ so it is stable for the whole session and changes when a new session starts.
 
 ## Overflow (revised 2026-06-06)
 
-The earlier "curate short only" decision is reversed. A long quote must NOT be
-left to wrap awkwardly onto a fourth row. The quote line is truncated to the
-terminal width with a trailing `…`:
+The earlier "curate short only" decision is reversed. A long quote is
+**word-wrapped** onto additional rows (a 4th line, 5th, …) rather than
+truncated — the full quote is always shown:
 
 - Width source: `process.env.COLUMNS`, which Claude Code sets to the current
   terminal width before running the statusline command (v2.1.153+). The
@@ -27,12 +27,13 @@ terminal width with a trailing `…`:
   sees it. The statusline input JSON does NOT carry terminal width.
 - `runStatusline` parses `COLUMNS` to an integer and subtracts a 1-column safety
   margin (built-in UI spacing). When `COLUMNS` is unset/invalid, width is
-  unknown → no truncation (return the quote unchanged rather than mangle it).
-- `truncate(text, maxWidth)` cuts the plain (ANSI-free) quote to `maxWidth`
-  visible columns, trims a trailing space, and appends `…` (the ellipsis counts
-  as 1 column, so the result is exactly `maxWidth` wide). Truncation happens on
-  the raw picked quote BEFORE the `DIM`/`RESET` wrap, so color codes never
-  count toward width and are never cut mid-sequence.
+  unknown → the quote is emitted as a single line and the terminal wraps it
+  naturally.
+- `wrapText(text, maxWidth)` greedily word-wraps the plain (ANSI-free) quote to
+  `maxWidth` columns and returns one array element per row; a word longer than a
+  full line is hard-broken. Wrapping happens on the raw picked quote BEFORE
+  color-wrapping, then each row is `DIM`/`RESET`-wrapped individually so the
+  color never bleeds across line breaks and ANSI codes never count toward width.
 
 ## Behavior
 

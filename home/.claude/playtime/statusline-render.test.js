@@ -485,7 +485,7 @@ test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', 
   const out = execSync(`${JSON.stringify(process.execPath)} statusline-render.js`, {
     cwd: __dirname,
     input,
-    env: { ...process.env, GIELINOR_HOURS: '⏱ 66h' },
+    env: { ...process.env, GIELINOR_HOURS: '⏱ 66h', COLUMNS: '200' },
   }).toString();
   const lines = out.split('\n');
   assert.equal(lines.length, 3);
@@ -496,40 +496,44 @@ test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', 
   assert.ok(lines[2].includes('"')); // a quote on line 3
 });
 
-test('truncate: returns short or exact-fit text unchanged', () => {
-  assert.equal(R.truncate('short', 80), 'short');
-  assert.equal(R.truncate('exactfit!!', 10), 'exactfit!!'); // length 10 == maxWidth
+test('wrapText: short text returns a single line', () => {
+  assert.deepEqual(R.wrapText('short enough', 80), ['short enough']);
 });
 
-test('truncate: cuts long text to maxWidth with a trailing ellipsis', () => {
-  const out = R.truncate('abcdefghij', 5); // 10 chars -> width 5
-  assert.equal(out, 'abcd…');
-  assert.equal(out.length, 5);
+test('wrapText: wraps on word boundaries to fit maxWidth', () => {
+  // widths: "the quick"=9, +" brown"=15, +" fox"=19; cap 10 -> break after each fit
+  assert.deepEqual(R.wrapText('the quick brown fox', 10), ['the quick', 'brown fox']);
 });
 
-test('truncate: trims a trailing space before the ellipsis', () => {
-  // slice(0,6) = 'hello ' -> trimEnd -> 'hello' -> 'hello…'
-  assert.equal(R.truncate('hello world', 7), 'hello…');
+test('wrapText: every produced line fits within maxWidth', () => {
+  const text = 'a fairly long sentence that should wrap across several rows neatly';
+  const lines = R.wrapText(text, 20);
+  assert.ok(lines.length > 1);
+  for (const line of lines) assert.ok(line.length <= 20, `"${line}" exceeds 20`);
+  assert.equal(lines.join(' '), text); // no content lost on word boundaries
 });
 
-test('truncate: unknown/invalid maxWidth returns text unchanged', () => {
-  const long = 'x'.repeat(200);
-  assert.equal(R.truncate(long, null), long);
-  assert.equal(R.truncate(long, undefined), long);
-  assert.equal(R.truncate(long, 0), long);
-  assert.equal(R.truncate(long, -5), long);
-  assert.equal(R.truncate(long, NaN), long);
+test('wrapText: hard-breaks a word longer than the line', () => {
+  assert.deepEqual(R.wrapText('abcdefghij', 4), ['abcd', 'efgh', 'ij']);
 });
 
-test('truncate: empty/falsy text passes through', () => {
-  assert.equal(R.truncate('', 80), '');
+test('wrapText: unknown/invalid maxWidth returns one unwrapped line', () => {
+  const long = 'x '.repeat(100).trim();
+  assert.deepEqual(R.wrapText(long, null), [long]);
+  assert.deepEqual(R.wrapText(long, undefined), [long]);
+  assert.deepEqual(R.wrapText(long, 0), [long]);
+  assert.deepEqual(R.wrapText(long, NaN), [long]);
 });
 
-test('buildOutput: truncates a long quote to the column width', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-bo-trunc-'));
+test('wrapText: empty/falsy text returns []', () => {
+  assert.deepEqual(R.wrapText('', 80), []);
+});
+
+test('buildOutput: wraps a long quote onto additional dim rows', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-bo-wrap-'));
   try {
     const qf = path.join(tmp, 'quotes.md');
-    const longQuote = '"' + 'A'.repeat(200) + '" —Someone';
+    const longQuote = '"All we have to decide is what to do with the time that is given us." —Gandalf';
     fs.writeFileSync(qf, '## S\n- ' + longQuote + '\n');
     const data = {
       model: { display_name: 'Opus 4.8' },
@@ -538,14 +542,21 @@ test('buildOutput: truncates a long quote to the column width', () => {
     };
     const out = R.buildOutput(data, {
       homeDir: '/home/kevin', playtimeRaw: '⏱ 5h', branch: '', task: null,
-      gsdMiddle: '', quotesPath: qf, session: 'whatever', columns: 40,
+      gsdMiddle: '', quotesPath: qf, session: 'whatever', columns: 30,
     });
     const lines = out.split('\n');
-    assert.equal(lines.length, 3);
-    // Strip the DIM prefix + RESET suffix to measure the visible quote width.
-    const visible = lines[2].replace('\x1b[2m', '').replace('\x1b[0m', '');
-    assert.equal(visible.length, 40);
-    assert.ok(visible.endsWith('…'));
+    assert.ok(lines.length >= 4, 'long quote should wrap past a 3rd line');
+    // Every quote row (line 3 onward) is dim-wrapped and within the width.
+    for (const line of lines.slice(2)) {
+      assert.ok(line.startsWith('\x1b[2m') && line.endsWith(RESET));
+      const visible = line.replace('\x1b[2m', '').replace(RESET, '');
+      assert.ok(visible.length <= 30, `"${visible}" exceeds 30`);
+    }
+    // Reassembling the visible quote rows reproduces the original quote.
+    const visibleQuote = lines.slice(2)
+      .map((l) => l.replace('\x1b[2m', '').replace(RESET, ''))
+      .join(' ');
+    assert.equal(visibleQuote, longQuote);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

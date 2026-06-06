@@ -84,17 +84,29 @@ function pickQuote(quotes, session) {
   return quotes[idx];
 }
 
-// Truncate a plain (ANSI-free) string to `maxWidth` visible columns, ending with
-// '…' (which itself counts as 1 column, so the result is exactly maxWidth wide).
-// A null/invalid maxWidth means the terminal width is unknown -> return the text
-// unchanged rather than mangle it. Must run BEFORE any color wrapping so ANSI
-// codes never count toward width or get cut mid-sequence.
-function truncate(text, maxWidth) {
-  if (!text) return text;
-  if (maxWidth == null || !Number.isFinite(maxWidth) || maxWidth < 1) return text;
-  if (text.length <= maxWidth) return text;
-  if (maxWidth === 1) return '…';
-  return text.slice(0, maxWidth - 1).trimEnd() + '…';
+// Word-wrap a plain (ANSI-free) string to `maxWidth` columns, returning one
+// array element per visual row. A null/invalid maxWidth means the terminal
+// width is unknown -> return the text as a single line and let the terminal
+// wrap it naturally. Words longer than a full line are hard-broken. Must run
+// BEFORE any color wrapping so ANSI codes never count toward width.
+function wrapText(text, maxWidth) {
+  if (!text) return [];
+  if (maxWidth == null || !Number.isFinite(maxWidth) || maxWidth < 1) return [text];
+  const lines = [];
+  let cur = '';
+  for (let word of text.split(' ')) {
+    if (word === '') continue;
+    while (word.length > maxWidth) { // hard-break an over-long word
+      if (cur) { lines.push(cur); cur = ''; }
+      lines.push(word.slice(0, maxWidth));
+      word = word.slice(maxWidth);
+    }
+    if (!cur) cur = word;
+    else if (cur.length + 1 + word.length <= maxWidth) cur += ' ' + word;
+    else { lines.push(cur); cur = word; }
+  }
+  if (cur) lines.push(cur);
+  return lines;
 }
 
 function formatModel(name) {
@@ -166,10 +178,13 @@ function buildOutput(data, ctx) {
   const middle = task ? `${BOLD}${task}${RESET}` : (gsdMiddle || '');
   const playtime = formatPlaytime(playtimeRaw);
 
-  // Truncate to the terminal width (when known) BEFORE color-wrapping, so a long
-  // quote is cut with '…' instead of wrapping awkwardly onto another row.
-  const picked = truncate(pickQuote(loadQuotes(quotesPath), session), columns);
-  const quote = picked ? `${DIM}${picked}${RESET}` : '';
+  // Word-wrap to the terminal width (when known) so a long quote flows onto
+  // additional rows instead of wrapping mid-word. Each row is dim-wrapped
+  // individually so the color never bleeds across line breaks.
+  const wrapped = wrapText(pickQuote(loadQuotes(quotesPath), session), columns);
+  const quote = wrapped.length
+    ? wrapped.map((line) => `${DIM}${line}${RESET}`).join('\n')
+    : '';
 
   return composeLines({
     model, effort, branch: branch || '', pathSeg,
@@ -280,7 +295,8 @@ function runStatusline() {
       const gsdMiddle = task ? '' : getGsdMiddle(dir, path.join(claudeDir, 'hooks', 'gsd-statusline.js'));
       // Claude Code sets COLUMNS to the terminal width before running the
       // statusline (v2.1.153+); the wrapper inherits it. Subtract 1 col for the
-      // UI's built-in spacing. Unknown/invalid => null => no quote truncation.
+      // UI's built-in spacing. Unknown/invalid => null => no explicit wrapping
+      // (the terminal wraps the quote naturally instead).
       const cols = parseInt(process.env.COLUMNS, 10);
       const columns = Number.isInteger(cols) && cols > 1 ? cols - 1 : null;
       process.stdout.write(buildOutput(data, {
@@ -303,7 +319,7 @@ module.exports = {
   renderBar, formatEffort, formatModel, shortenPath, formatPath,
   formatPlaytime, composeLines, buildOutput, detectBranch,
   readActiveTask, getGsdMiddle, writeBridge,
-  hash, loadQuotes, pickQuote, truncate,
+  hash, loadQuotes, pickQuote, wrapText,
 };
 
 if (require.main === module) runStatusline();
