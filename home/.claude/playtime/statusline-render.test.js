@@ -332,6 +332,38 @@ test('writeBridge: skips unsafe session ids and missing remaining', () => {
   }
 });
 
+test('hash: deterministic and stable for a given string', () => {
+  assert.equal(R.hash('e2e-test'), R.hash('e2e-test'));
+  assert.equal(typeof R.hash('abc'), 'number');
+  assert.ok(R.hash('abc') >= 0); // unsigned
+  assert.notEqual(R.hash('aaa'), R.hash('aab'));
+});
+
+test('pickQuote: empty list returns empty string', () => {
+  assert.equal(R.pickQuote([], 'sess'), '');
+  assert.equal(R.pickQuote(undefined, 'sess'), '');
+});
+
+test('pickQuote: deterministic per session, in-range', () => {
+  const quotes = ['a', 'b', 'c', 'd', 'e'];
+  const first = R.pickQuote(quotes, 'session-123');
+  assert.equal(first, R.pickQuote(quotes, 'session-123')); // stable
+  assert.ok(quotes.includes(first)); // in range
+});
+
+test('pickQuote: missing session falls back to index 0', () => {
+  const quotes = ['first', 'second', 'third'];
+  assert.equal(R.pickQuote(quotes, ''), 'first');
+  assert.equal(R.pickQuote(quotes, undefined), 'first');
+});
+
+test('pickQuote: different sessions spread across the list', () => {
+  const quotes = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+  const seen = new Set();
+  for (let i = 0; i < 50; i++) seen.add(R.pickQuote(quotes, 'sess-' + i));
+  assert.ok(seen.size >= 3); // not all collapsing to one bucket
+});
+
 test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
   const input = JSON.stringify({
     model: { display_name: 'Opus 4.8' },

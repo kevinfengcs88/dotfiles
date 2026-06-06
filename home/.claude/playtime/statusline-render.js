@@ -42,6 +42,26 @@ function formatEffort(level) {
   return `${EFFORT_COLORS[level]}effort: ${level}${RESET}`;
 }
 
+// Deterministic 32-bit FNV-1a hash of a string. Stable across runs and
+// platforms; used to map session_id to a quote index. Returns an unsigned int.
+function hash(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+// Deterministic per-session quote selection. Empty/absent list => ''.
+// Missing session => index 0.
+function pickQuote(quotes, session) {
+  if (!quotes || quotes.length === 0) return '';
+  if (!session) return quotes[0];
+  const idx = hash(session) % quotes.length;
+  return quotes[idx];
+}
+
 function formatModel(name) {
   return `${DIM}${name || 'Claude'}${RESET}`;
 }
@@ -230,6 +250,7 @@ module.exports = {
   renderBar, formatEffort, formatModel, shortenPath, formatPath,
   formatPlaytime, composeLines, buildOutput, detectBranch,
   readActiveTask, getGsdMiddle, writeBridge,
+  hash, pickQuote,
 };
 
 if (require.main === module) runStatusline();
