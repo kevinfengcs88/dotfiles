@@ -95,6 +95,27 @@ test('formatPlaytime: defaults to 0h when empty', () => {
   assert.equal(R.formatPlaytime(undefined), 'Hours spent in Gielinor: 0h');
 });
 
+test('formatReset: empty when resets_at absent or invalid', () => {
+  assert.equal(R.formatReset(null, 1000), '');
+  assert.equal(R.formatReset(undefined, 1000), '');
+  assert.equal(R.formatReset('nope', 1000), '');
+});
+
+test('formatReset: hours and minutes remaining', () => {
+  const now = 1000000;
+  assert.equal(R.formatReset(now + 2 * 3600 + 34 * 60, now), 'Session resets in: 2h 34m');
+});
+
+test('formatReset: minutes only when under an hour', () => {
+  const now = 1000000;
+  assert.equal(R.formatReset(now + 45 * 60, now), 'Session resets in: 45m');
+});
+
+test('formatReset: clamps a past reset to 0m', () => {
+  const now = 1000000;
+  assert.equal(R.formatReset(now - 500, now), 'Session resets in: 0m');
+});
+
 test('composeLines: full output — line 1 carries task/state, line 2 is meters + playtime', () => {
   const out = R.composeLines({
     model: '\x1b[2mOpus 4.8' + RESET,
@@ -110,6 +131,16 @@ test('composeLines: full output — line 1 carries task/state, line 2 is meters 
     ' │ main │ \x1b[2m~/x' + RESET + ' │ \x1b[1mtask' + RESET;
   const line2 = 'ctx CTX │ 5h USE │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
+});
+
+test('composeLines: reset segment sits between the 5h bar and playtime', () => {
+  const out = R.composeLines({
+    model: 'M', effort: '', branch: '', pathSeg: 'P', middle: '',
+    ctxBar: 'CTX', usageBar: 'USE', reset: 'Session resets in: 1h 0m',
+    playtime: 'Hours spent in Gielinor: 66h',
+  });
+  const line2 = 'ctx CTX │ 5h USE │ Session resets in: 1h 0m │ Hours spent in Gielinor: 66h';
+  assert.ok(out.endsWith(line2), out);
 });
 
 test('composeLines: degraded (no effort/branch/middle/usage)', () => {
@@ -149,6 +180,22 @@ test('buildOutput: assembles full line from data + injected I/O', () => {
     ' │ 5h \x1b[2m██░░░░░░░░ 22%' + RESET +
     ' │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
+});
+
+test('buildOutput: includes session reset countdown after the 5h bar', () => {
+  const now = 2000000;
+  const data = {
+    model: { display_name: 'Opus 4.8' },
+    workspace: { current_dir: '/home/kevin/proj' },
+    context_window: { used_percentage: 10 },
+    rate_limits: { five_hour: { used_percentage: 20, resets_at: now + 3 * 3600 + 5 * 60 } },
+  };
+  const out = R.buildOutput(data, {
+    homeDir: '/home/kevin', playtimeRaw: '⏱ 5h', branch: '', task: null,
+    gsdMiddle: '', now,
+  });
+  assert.ok(out.includes('5h '));
+  assert.ok(out.includes(' │ Session resets in: 3h 5m │ Hours spent in Gielinor: 5h'), out);
 });
 
 test('buildOutput: active task (bold) takes precedence over gsd middle', () => {

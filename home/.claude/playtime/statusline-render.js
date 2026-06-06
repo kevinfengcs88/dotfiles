@@ -143,15 +143,28 @@ function formatPlaytime(raw) {
   return `Hours spent in Gielinor: ${v}`;
 }
 
+// "Session resets in: 2h 34m" from the 5h window's epoch-seconds reset time
+// (`rate_limits.five_hour.resets_at`). Empty when absent/invalid. The hours
+// part is dropped when zero; a reset already in the past clamps to 0m.
+function formatReset(resetsAt, now) {
+  if (resetsAt == null || !Number.isFinite(Number(resetsAt))) return '';
+  const n = Number.isFinite(Number(now)) ? Number(now) : Math.floor(Date.now() / 1000);
+  const secs = Math.max(0, Math.floor(Number(resetsAt) - n));
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const dur = h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return `Session resets in: ${dur}`;
+}
+
 // Visible width of a string, ignoring ANSI color codes. Line-1 content is all
 // Line 1 = identity + location + current task/state, all pipe-separated.
 // Line 2 = meters + playtime. Absent segments are dropped so separators never
 // collapse to " │ │ ".
-function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime, quote }) {
+function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, reset, playtime, quote }) {
   const line1 = [model, effort, branch, pathSeg, middle].filter(Boolean).join(' │ ');
   const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';
   const usageSeg = usageBar ? `5h ${usageBar}` : '';
-  const line2 = [ctxSeg, usageSeg, playtime].filter(Boolean).join(' │ ');
+  const line2 = [ctxSeg, usageSeg, reset, playtime].filter(Boolean).join(' │ ');
   const lines = [line1];
   if (line2) lines.push(line2);
   if (quote) lines.push(quote);
@@ -160,7 +173,7 @@ function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar
 
 // Pure assembler: `data` is parsed stdin JSON; `ctx` carries all I/O results.
 function buildOutput(data, ctx) {
-  const { homeDir, playtimeRaw, branch, task, gsdMiddle, quotesPath, session, columns } = ctx;
+  const { homeDir, playtimeRaw, branch, task, gsdMiddle, quotesPath, session, columns, now } = ctx;
   const model = formatModel(data.model && data.model.display_name);
   const effort = formatEffort(data.effort && data.effort.level);
   const dir = (data.workspace && data.workspace.current_dir) || '';
@@ -175,6 +188,10 @@ function buildOutput(data, ctx) {
   // ctx threshold colors, so only the ctx bar's color signals "run /compact".
   const usageBar = usagePct == null ? '' : renderBar(usagePct, DIM);
 
+  const resetsAt = data.rate_limits && data.rate_limits.five_hour &&
+    data.rate_limits.five_hour.resets_at;
+  const reset = formatReset(resetsAt, now);
+
   const middle = task ? `${BOLD}${task}${RESET}` : (gsdMiddle || '');
   const playtime = formatPlaytime(playtimeRaw);
 
@@ -188,7 +205,7 @@ function buildOutput(data, ctx) {
 
   return composeLines({
     model, effort, branch: branch || '', pathSeg,
-    middle, ctxBar, usageBar, playtime, quote,
+    middle, ctxBar, usageBar, reset, playtime, quote,
   });
 }
 
@@ -311,6 +328,7 @@ function runStatusline() {
         quotesPath: process.env.QUOTES_FILE || path.join(__dirname, 'quotes.md'),
         session,
         columns,
+        now: Math.floor(Date.now() / 1000),
       }));
     } catch (e) {
       // Silent fail — never break the statusline.
@@ -320,7 +338,7 @@ function runStatusline() {
 
 module.exports = {
   renderBar, formatEffort, formatModel, shortenPath, formatPath,
-  formatPlaytime, composeLines, buildOutput, detectBranch,
+  formatPlaytime, formatReset, composeLines, buildOutput, detectBranch,
   readActiveTask, getGsdMiddle, writeBridge,
   hash, loadQuotes, pickQuote, wrapText,
 };
