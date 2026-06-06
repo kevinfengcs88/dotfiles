@@ -45,6 +45,7 @@ function formatEffort(level) {
 // Deterministic 32-bit FNV-1a hash of a string. Stable across runs and
 // platforms; used to map session_id to a quote index. Returns an unsigned int.
 function hash(str) {
+  if (!str) return 0x811c9dc5 >>> 0;
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
     h ^= str.charCodeAt(i);
@@ -54,7 +55,7 @@ function hash(str) {
 }
 
 // Deterministic per-session quote selection. Empty/absent list => ''.
-// Missing session => index 0.
+// Missing/empty session => index 0.
 function pickQuote(quotes, session) {
   if (!quotes || quotes.length === 0) return '';
   if (!session) return quotes[0];

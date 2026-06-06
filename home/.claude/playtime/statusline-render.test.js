@@ -336,6 +336,7 @@ test('hash: deterministic and stable for a given string', () => {
   assert.equal(R.hash('e2e-test'), R.hash('e2e-test'));
   assert.equal(typeof R.hash('abc'), 'number');
   assert.ok(R.hash('abc') >= 0); // unsigned
+  assert.equal(R.hash('abc'), 440920331); // pinned FNV-1a value
   assert.notEqual(R.hash('aaa'), R.hash('aab'));
 });
 
@@ -361,7 +362,7 @@ test('pickQuote: different sessions spread across the list', () => {
   const quotes = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
   const seen = new Set();
   for (let i = 0; i < 50; i++) seen.add(R.pickQuote(quotes, 'sess-' + i));
-  assert.ok(seen.size >= 3); // not all collapsing to one bucket
+  assert.ok(seen.size >= 6); // good distribution across 8 slots
 });
 
 test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
