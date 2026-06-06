@@ -5,6 +5,7 @@
   "permissions": {
     "allow": [
       "Bash(npm *)",
+      "Bash(uv *)",
       "Bash(curl *)",
       "Bash(pnpm build*)",
       "Bash(pnpm dev*)",
@@ -64,9 +65,9 @@
     "ask": [
       "mcp__plugin_playwright_playwright__browser_run_code_unsafe"
     ],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "auto"
   },
-  "model": "opus",
+  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
