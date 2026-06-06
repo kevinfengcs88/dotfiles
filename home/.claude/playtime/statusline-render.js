@@ -84,6 +84,19 @@ function pickQuote(quotes, session) {
   return quotes[idx];
 }
 
+// Truncate a plain (ANSI-free) string to `maxWidth` visible columns, ending with
+// '…' (which itself counts as 1 column, so the result is exactly maxWidth wide).
+// A null/invalid maxWidth means the terminal width is unknown -> return the text
+// unchanged rather than mangle it. Must run BEFORE any color wrapping so ANSI
+// codes never count toward width or get cut mid-sequence.
+function truncate(text, maxWidth) {
+  if (!text) return text;
+  if (maxWidth == null || !Number.isFinite(maxWidth) || maxWidth < 1) return text;
+  if (text.length <= maxWidth) return text;
+  if (maxWidth === 1) return '…';
+  return text.slice(0, maxWidth - 1).trimEnd() + '…';
+}
+
 function formatModel(name) {
   return `${DIM}${name || 'Claude'}${RESET}`;
 }
@@ -135,7 +148,7 @@ function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar
 
 // Pure assembler: `data` is parsed stdin JSON; `ctx` carries all I/O results.
 function buildOutput(data, ctx) {
-  const { homeDir, playtimeRaw, branch, task, gsdMiddle, quotesPath, session } = ctx;
+  const { homeDir, playtimeRaw, branch, task, gsdMiddle, quotesPath, session, columns } = ctx;
   const model = formatModel(data.model && data.model.display_name);
   const effort = formatEffort(data.effort && data.effort.level);
   const dir = (data.workspace && data.workspace.current_dir) || '';
@@ -153,7 +166,9 @@ function buildOutput(data, ctx) {
   const middle = task ? `${BOLD}${task}${RESET}` : (gsdMiddle || '');
   const playtime = formatPlaytime(playtimeRaw);
 
-  const picked = pickQuote(loadQuotes(quotesPath), session);
+  // Truncate to the terminal width (when known) BEFORE color-wrapping, so a long
+  // quote is cut with '…' instead of wrapping awkwardly onto another row.
+  const picked = truncate(pickQuote(loadQuotes(quotesPath), session), columns);
   const quote = picked ? `${DIM}${picked}${RESET}` : '';
 
   return composeLines({
@@ -263,6 +278,11 @@ function runStatusline() {
       const claudeDir = process.env.CLAUDE_CONFIG_DIR || path.join(homeDir, '.claude');
       const task = readActiveTask(session, path.join(claudeDir, 'todos'));
       const gsdMiddle = task ? '' : getGsdMiddle(dir, path.join(claudeDir, 'hooks', 'gsd-statusline.js'));
+      // Claude Code sets COLUMNS to the terminal width before running the
+      // statusline (v2.1.153+); the wrapper inherits it. Subtract 1 col for the
+      // UI's built-in spacing. Unknown/invalid => null => no quote truncation.
+      const cols = parseInt(process.env.COLUMNS, 10);
+      const columns = Number.isInteger(cols) && cols > 1 ? cols - 1 : null;
       process.stdout.write(buildOutput(data, {
         homeDir,
         playtimeRaw: process.env.GIELINOR_HOURS,
@@ -271,6 +291,7 @@ function runStatusline() {
         gsdMiddle,
         quotesPath: path.join(__dirname, 'quotes.md'),
         session,
+        columns,
       }));
     } catch (e) {
       // Silent fail — never break the statusline.
@@ -282,7 +303,7 @@ module.exports = {
   renderBar, formatEffort, formatModel, shortenPath, formatPath,
   formatPlaytime, composeLines, buildOutput, detectBranch,
   readActiveTask, getGsdMiddle, writeBridge,
-  hash, loadQuotes, pickQuote,
+  hash, loadQuotes, pickQuote, truncate,
 };
 
 if (require.main === module) runStatusline();

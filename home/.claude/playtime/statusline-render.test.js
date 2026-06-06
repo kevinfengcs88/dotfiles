@@ -495,3 +495,58 @@ test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', 
   assert.ok(lines[1].includes('Hours spent in Gielinor: 66h'));
   assert.ok(lines[2].includes('"')); // a quote on line 3
 });
+
+test('truncate: returns short or exact-fit text unchanged', () => {
+  assert.equal(R.truncate('short', 80), 'short');
+  assert.equal(R.truncate('exactfit!!', 10), 'exactfit!!'); // length 10 == maxWidth
+});
+
+test('truncate: cuts long text to maxWidth with a trailing ellipsis', () => {
+  const out = R.truncate('abcdefghij', 5); // 10 chars -> width 5
+  assert.equal(out, 'abcd…');
+  assert.equal(out.length, 5);
+});
+
+test('truncate: trims a trailing space before the ellipsis', () => {
+  // slice(0,6) = 'hello ' -> trimEnd -> 'hello' -> 'hello…'
+  assert.equal(R.truncate('hello world', 7), 'hello…');
+});
+
+test('truncate: unknown/invalid maxWidth returns text unchanged', () => {
+  const long = 'x'.repeat(200);
+  assert.equal(R.truncate(long, null), long);
+  assert.equal(R.truncate(long, undefined), long);
+  assert.equal(R.truncate(long, 0), long);
+  assert.equal(R.truncate(long, -5), long);
+  assert.equal(R.truncate(long, NaN), long);
+});
+
+test('truncate: empty/falsy text passes through', () => {
+  assert.equal(R.truncate('', 80), '');
+});
+
+test('buildOutput: truncates a long quote to the column width', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-bo-trunc-'));
+  try {
+    const qf = path.join(tmp, 'quotes.md');
+    const longQuote = '"' + 'A'.repeat(200) + '" —Someone';
+    fs.writeFileSync(qf, '## S\n- ' + longQuote + '\n');
+    const data = {
+      model: { display_name: 'Opus 4.8' },
+      workspace: { current_dir: '/home/kevin/proj' },
+      context_window: { used_percentage: 10 },
+    };
+    const out = R.buildOutput(data, {
+      homeDir: '/home/kevin', playtimeRaw: '⏱ 5h', branch: '', task: null,
+      gsdMiddle: '', quotesPath: qf, session: 'whatever', columns: 40,
+    });
+    const lines = out.split('\n');
+    assert.equal(lines.length, 3);
+    // Strip the DIM prefix + RESET suffix to measure the visible quote width.
+    const visible = lines[2].replace('\x1b[2m', '').replace('\x1b[0m', '');
+    assert.equal(visible.length, 40);
+    assert.ok(visible.endsWith('…'));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
