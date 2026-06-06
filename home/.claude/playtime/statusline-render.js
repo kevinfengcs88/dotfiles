@@ -119,12 +119,15 @@ function formatPlaytime(raw) {
 // Line 1 = identity + location + current task/state, all pipe-separated.
 // Line 2 = meters + playtime. Absent segments are dropped so separators never
 // collapse to " │ │ ".
-function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime }) {
+function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime, quote }) {
   const line1 = [model, effort, branch, pathSeg, middle].filter(Boolean).join(' │ ');
   const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';
   const usageSeg = usageBar ? `5h ${usageBar}` : '';
   const line2 = [ctxSeg, usageSeg, playtime].filter(Boolean).join(' │ ');
-  return line2 ? `${line1}\n${line2}` : line1;
+  const lines = [line1];
+  if (line2) lines.push(line2);
+  if (quote) lines.push(quote);
+  return lines.join('\n');
 }
 
 // Pure assembler: `data` is parsed stdin JSON; `ctx` carries all I/O results.

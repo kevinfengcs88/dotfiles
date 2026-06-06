@@ -399,6 +399,40 @@ test('loadQuotes: missing or unreadable file returns []', () => {
   assert.deepEqual(R.loadQuotes(undefined), []);
 });
 
+test('composeLines: appends quote as a third line when present', () => {
+  const out = R.composeLines({
+    model: '\x1b[2mOpus 4.8' + RESET,
+    effort: '',
+    branch: '',
+    pathSeg: '\x1b[2m~/x' + RESET,
+    middle: '',
+    ctxBar: 'CTX',
+    usageBar: '',
+    playtime: 'Hours spent in Gielinor: 66h',
+    quote: '\x1b[2m"Be one." —Marcus Aurelius' + RESET,
+  });
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[2m~/x' + RESET;
+  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
+  const line3 = '\x1b[2m"Be one." —Marcus Aurelius' + RESET;
+  assert.equal(out, line1 + '\n' + line2 + '\n' + line3);
+});
+
+test('composeLines: no quote key => unchanged two-line output', () => {
+  const out = R.composeLines({
+    model: '\x1b[2mOpus 4.8' + RESET,
+    effort: '',
+    branch: '',
+    pathSeg: '\x1b[2m~/x' + RESET,
+    middle: '',
+    ctxBar: 'CTX',
+    usageBar: '',
+    playtime: 'Hours spent in Gielinor: 66h',
+  });
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[2m~/x' + RESET;
+  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
+  assert.equal(out, line1 + '\n' + line2);
+});
+
 test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
   const input = JSON.stringify({
     model: { display_name: 'Opus 4.8' },
