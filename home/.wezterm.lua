@@ -42,6 +42,26 @@ config.colors = {
 }
 config.min_scroll_bar_height = '3px'
 
+-- poll the active pane's foreground process this often (ms) to decide whether
+-- to show the scrollbar; lower = snappier tab switches, more CPU wakeups
+config.status_update_interval = 100
+
+-- Hide WezTerm's scrollbar when the active pane is running tmux, since tmux
+-- manages its own scrollback buffer and WezTerm's scrollbar is meaningless there.
+local function pane_is_tmux(pane)
+    local proc = pane:get_foreground_process_name()
+    return proc ~= nil and proc:find('tmux') ~= nil
+end
+
+wezterm.on('update-status', function(window, pane)
+    local overrides = window:get_config_overrides() or {}
+    local want_scrollbar = not pane_is_tmux(pane) -- show only when NOT in tmux
+    if overrides.enable_scroll_bar ~= want_scrollbar then
+        overrides.enable_scroll_bar = want_scrollbar
+        window:set_config_overrides(overrides)
+    end
+end)
+
 -- set up leader key
 -- default timeout is 1000 ms
 config.leader = { key = 'b', mods = 'CTRL', timeout_milliseconds = 1000 }
