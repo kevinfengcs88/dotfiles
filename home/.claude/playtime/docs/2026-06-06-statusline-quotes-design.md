@@ -59,8 +59,15 @@ accumulator). Cryptographic quality is not required; only stable distribution.
 ## Data source: `quotes.md`
 
 `quotes.md` lives in the same directory as `statusline-render.js`
-(`home/.claude/playtime/`, installed at `~/.claude/playtime/`). The renderer
-resolves it via `path.join(__dirname, 'quotes.md')`.
+(`home/.claude/playtime/`, installed at `~/.claude/playtime/`). Path resolution
+(revised 2026-06-06): the `playtime-statusline.sh` wrapper — which already
+resolves its own dir (`DIR`) to locate `statusline-render.js` and
+`statusline.conf` — passes `QUOTES_FILE="$DIR/quotes.md"` to the renderer.
+`runStatusline` uses `process.env.QUOTES_FILE`, falling back to
+`path.join(__dirname, 'quotes.md')` for direct invocation (e.g. tests). This
+keeps quote resolution correct whether the statusline runs from the repo by
+absolute path or from a stowed `~/.claude/playtime/`, since `quotes.md` is
+always a sibling of the wrapper.
 
 `loadQuotes(quotesPath)`:
 
@@ -94,8 +101,8 @@ by deleting bullet lines. Approved recommended sources get promoted above the
 
 `buildOutput(data, ctx)` and `runStatusline()`:
 
-- `runStatusline` passes `quotesPath = path.join(__dirname, 'quotes.md')` and the
-  existing `session` into `ctx`.
+- `runStatusline` passes `quotesPath = process.env.QUOTES_FILE || path.join(__dirname, 'quotes.md')`
+  (see Data source) and the existing `session` into `ctx`.
 - `buildOutput` calls `loadQuotes(quotesPath)` then `pickQuote(quotes, session)`,
   passes the result to `composeLines` as `quote` (dim-wrapped, like `playtime`).
 
