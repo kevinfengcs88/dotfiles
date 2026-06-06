@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Playtime two-line statusline renderer (user-owned; see docs/2026-06-05-statusline-redesign-design.md).
-// Reads Claude Code statusline JSON on stdin, prints two lines on stdout.
+// Reads Claude Code statusline JSON on stdin, prints two or three lines on stdout.
 
 const fs = require('fs');
 const path = require('path');
@@ -15,7 +15,9 @@ const YELLOW = '\x1b[33m';
 const ORANGE = '\x1b[38;5;208m';
 const BLINK_RED = '\x1b[5;31m';
 
-// Shared threshold color for both the context and 5h usage bars.
+// Threshold color for the actionable context bar (green→blinking red as it
+// fills). The 5h usage bar is informational, not actionable, so it does NOT use
+// this — it renders in a neutral DIM regardless of value (see buildOutput).
 function colorFor(pct) {
   if (pct < 40) return GREEN;
   if (pct < 65) return YELLOW;
@@ -23,13 +25,14 @@ function colorFor(pct) {
   return BLINK_RED;
 }
 
-// 10-segment bar identical to the legacy context meter (█ filled / ░ empty).
-function renderBar(pct) {
+// 10-segment bar (█ filled / ░ empty). Defaults to threshold coloring; pass an
+// explicit `color` to override it with a fixed color (e.g. neutral DIM).
+function renderBar(pct, color) {
   if (pct == null || Number.isNaN(Number(pct))) return '';
   const p = Math.max(0, Math.min(100, Math.round(Number(pct))));
   const filled = Math.floor(p / 10);
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
-  return `${colorFor(p)}${bar} ${p}%${RESET}`;
+  return `${color || colorFor(p)}${bar} ${p}%${RESET}`;
 }
 
 const RED = '\x1b[31m';
@@ -40,6 +43,70 @@ const EFFORT_COLORS = { low: GREEN, medium: GREEN, high: YELLOW, xhigh: ORANGE, 
 function formatEffort(level) {
   if (!level || !(level in EFFORT_COLORS)) return '';
   return `${EFFORT_COLORS[level]}effort: ${level}${RESET}`;
+}
+
+// Deterministic 32-bit FNV-1a hash of a string. Stable across runs and
+// platforms; used to map session_id to a quote index. Returns an unsigned int.
+function hash(str) {
+  if (!str) return 0x811c9dc5 >>> 0;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+// Parse curated quote bullets from quotes.md. Only the region BEFORE the
+// "# Recommended additional sources" heading is read, so staging samples never
+// reach the statusline. Returns [] on any error (missing/unreadable file).
+function loadQuotes(quotesPath) {
+  try {
+    const raw = fs.readFileSync(quotesPath, 'utf8');
+    const cutoff = raw.indexOf('# Recommended additional sources');
+    const region = cutoff === -1 ? raw : raw.slice(0, cutoff);
+    return region
+      .split('\n')
+      .filter((line) => /^- "/.test(line))
+      .map((line) => line.replace(/^- /, '').trim())
+      .filter(Boolean);
+  } catch (e) {
+    return [];
+  }
+}
+
+// Deterministic per-session quote selection. Empty/absent list => ''.
+// Missing/empty session => index 0.
+function pickQuote(quotes, session) {
+  if (!quotes || quotes.length === 0) return '';
+  if (!session) return quotes[0];
+  const idx = hash(session) % quotes.length;
+  return quotes[idx];
+}
+
+// Word-wrap a plain (ANSI-free) string to `maxWidth` columns, returning one
+// array element per visual row. A null/invalid maxWidth means the terminal
+// width is unknown -> return the text as a single line and let the terminal
+// wrap it naturally. Words longer than a full line are hard-broken. Must run
+// BEFORE any color wrapping so ANSI codes never count toward width.
+function wrapText(text, maxWidth) {
+  if (!text) return [];
+  if (maxWidth == null || !Number.isFinite(maxWidth) || maxWidth < 1) return [text];
+  const lines = [];
+  let cur = '';
+  for (let word of text.split(' ')) {
+    if (word === '') continue;
+    while (word.length > maxWidth) { // hard-break an over-long word
+      if (cur) { lines.push(cur); cur = ''; }
+      lines.push(word.slice(0, maxWidth));
+      word = word.slice(maxWidth);
+    }
+    if (!cur) cur = word;
+    else if (cur.length + 1 + word.length <= maxWidth) cur += ' ' + word;
+    else { lines.push(cur); cur = word; }
+  }
+  if (cur) lines.push(cur);
+  return lines;
 }
 
 function formatModel(name) {
@@ -80,17 +147,20 @@ function formatPlaytime(raw) {
 // Line 1 = identity + location + current task/state, all pipe-separated.
 // Line 2 = meters + playtime. Absent segments are dropped so separators never
 // collapse to " │ │ ".
-function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime }) {
+function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, playtime, quote }) {
   const line1 = [model, effort, branch, pathSeg, middle].filter(Boolean).join(' │ ');
   const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';
   const usageSeg = usageBar ? `5h ${usageBar}` : '';
   const line2 = [ctxSeg, usageSeg, playtime].filter(Boolean).join(' │ ');
-  return line2 ? `${line1}\n${line2}` : line1;
+  const lines = [line1];
+  if (line2) lines.push(line2);
+  if (quote) lines.push(quote);
+  return lines.join('\n');
 }
 
 // Pure assembler: `data` is parsed stdin JSON; `ctx` carries all I/O results.
 function buildOutput(data, ctx) {
-  const { homeDir, playtimeRaw, branch, task, gsdMiddle } = ctx;
+  const { homeDir, playtimeRaw, branch, task, gsdMiddle, quotesPath, session, columns } = ctx;
   const model = formatModel(data.model && data.model.display_name);
   const effort = formatEffort(data.effort && data.effort.level);
   const dir = (data.workspace && data.workspace.current_dir) || '';
@@ -101,14 +171,24 @@ function buildOutput(data, ctx) {
 
   const usagePct = data.rate_limits && data.rate_limits.five_hour &&
     data.rate_limits.five_hour.used_percentage;
-  const usageBar = usagePct == null ? '' : renderBar(usagePct);
+  // 5h usage is informational, not actionable — always neutral DIM, never the
+  // ctx threshold colors, so only the ctx bar's color signals "run /compact".
+  const usageBar = usagePct == null ? '' : renderBar(usagePct, DIM);
 
   const middle = task ? `${BOLD}${task}${RESET}` : (gsdMiddle || '');
   const playtime = formatPlaytime(playtimeRaw);
 
+  // Word-wrap to the terminal width (when known) so a long quote flows onto
+  // additional rows instead of wrapping mid-word. Each row is dim-wrapped
+  // individually so the color never bleeds across line breaks.
+  const wrapped = wrapText(pickQuote(loadQuotes(quotesPath), session), columns);
+  const quote = wrapped.length
+    ? wrapped.map((line) => `${DIM}${line}${RESET}`).join('\n')
+    : '';
+
   return composeLines({
     model, effort, branch: branch || '', pathSeg,
-    middle, ctxBar, usageBar, playtime,
+    middle, ctxBar, usageBar, playtime, quote,
   });
 }
 
@@ -213,12 +293,21 @@ function runStatusline() {
       const claudeDir = process.env.CLAUDE_CONFIG_DIR || path.join(homeDir, '.claude');
       const task = readActiveTask(session, path.join(claudeDir, 'todos'));
       const gsdMiddle = task ? '' : getGsdMiddle(dir, path.join(claudeDir, 'hooks', 'gsd-statusline.js'));
+      // Claude Code sets COLUMNS to the terminal width before running the
+      // statusline (v2.1.153+); the wrapper inherits it. Subtract 1 col for the
+      // UI's built-in spacing. Unknown/invalid => null => no explicit wrapping
+      // (the terminal wraps the quote naturally instead).
+      const cols = parseInt(process.env.COLUMNS, 10);
+      const columns = Number.isInteger(cols) && cols > 1 ? cols - 1 : null;
       process.stdout.write(buildOutput(data, {
         homeDir,
         playtimeRaw: process.env.GIELINOR_HOURS,
         branch,
         task,
         gsdMiddle,
+        quotesPath: path.join(__dirname, 'quotes.md'),
+        session,
+        columns,
       }));
     } catch (e) {
       // Silent fail — never break the statusline.
@@ -230,6 +319,7 @@ module.exports = {
   renderBar, formatEffort, formatModel, shortenPath, formatPath,
   formatPlaytime, composeLines, buildOutput, detectBranch,
   readActiveTask, getGsdMiddle, writeBridge,
+  hash, loadQuotes, pickQuote, wrapText,
 };
 
 if (require.main === module) runStatusline();

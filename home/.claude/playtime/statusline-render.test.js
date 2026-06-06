@@ -35,6 +35,13 @@ test('renderBar: empty string for null/NaN', () => {
   assert.equal(R.renderBar(NaN), '');
 });
 
+test('renderBar: explicit color overrides threshold coloring at any value', () => {
+  const DIM = '\x1b[2m';
+  assert.equal(R.renderBar(22, DIM), DIM + '██░░░░░░░░ 22%' + RESET);
+  // A high value that would normally blink red stays neutral when overridden.
+  assert.equal(R.renderBar(95, DIM), DIM + '█████████░ 95%' + RESET);
+});
+
 test('formatEffort: color-coded by level', () => {
   assert.equal(R.formatEffort('low'), '\x1b[32meffort: low' + RESET);
   assert.equal(R.formatEffort('medium'), '\x1b[32meffort: medium' + RESET);
@@ -139,7 +146,7 @@ test('buildOutput: assembles full line from data + injected I/O', () => {
   const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[33meffort: high' + RESET +
     ' │ main │ \x1b[2m~/proj' + RESET + ' │ \x1b[2mexecuting · auth (2/5)' + RESET;
   const line2 = 'ctx \x1b[32m███░░░░░░░ 38%' + RESET +
-    ' │ 5h \x1b[32m██░░░░░░░░ 22%' + RESET +
+    ' │ 5h \x1b[2m██░░░░░░░░ 22%' + RESET +
     ' │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
 });
@@ -332,7 +339,142 @@ test('writeBridge: skips unsafe session ids and missing remaining', () => {
   }
 });
 
-test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
+test('hash: deterministic and stable for a given string', () => {
+  assert.equal(R.hash('e2e-test'), R.hash('e2e-test'));
+  assert.equal(typeof R.hash('abc'), 'number');
+  assert.ok(R.hash('abc') >= 0); // unsigned
+  assert.equal(R.hash('abc'), 440920331); // pinned FNV-1a value
+  assert.notEqual(R.hash('aaa'), R.hash('aab'));
+});
+
+test('pickQuote: empty list returns empty string', () => {
+  assert.equal(R.pickQuote([], 'sess'), '');
+  assert.equal(R.pickQuote(undefined, 'sess'), '');
+});
+
+test('pickQuote: deterministic per session, in-range', () => {
+  const quotes = ['a', 'b', 'c', 'd', 'e'];
+  const first = R.pickQuote(quotes, 'session-123');
+  assert.equal(first, R.pickQuote(quotes, 'session-123')); // stable
+  assert.ok(quotes.includes(first)); // in range
+});
+
+test('pickQuote: missing session falls back to index 0', () => {
+  const quotes = ['first', 'second', 'third'];
+  assert.equal(R.pickQuote(quotes, ''), 'first');
+  assert.equal(R.pickQuote(quotes, undefined), 'first');
+});
+
+test('pickQuote: different sessions spread across the list', () => {
+  const quotes = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+  const seen = new Set();
+  for (let i = 0; i < 50; i++) seen.add(R.pickQuote(quotes, 'sess-' + i));
+  assert.ok(seen.size >= 6); // good distribution across 8 slots
+});
+
+test('loadQuotes: parses "- \\"..\\"" bullets, ignores headings/prose', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-quotes-'));
+  try {
+    const f = path.join(tmp, 'quotes.md');
+    fs.writeFileSync(f,
+      '# Title\n\nSome prose.\n\n## Source\n\n' +
+      '- "First quote." —A\n' +
+      '- "Second quote." —B\n' +
+      '- a non-quote bullet\n');
+    assert.deepEqual(R.loadQuotes(f), ['"First quote." —A', '"Second quote." —B']);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('loadQuotes: stops at the Recommended additional sources heading', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-quotes-cut-'));
+  try {
+    const f = path.join(tmp, 'quotes.md');
+    fs.writeFileSync(f,
+      '## Live\n- "Live one." —X\n\n' +
+      '# Recommended additional sources\n' +
+      '### Seneca\n- "Sample do not show." —Seneca\n');
+    assert.deepEqual(R.loadQuotes(f), ['"Live one." —X']);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('loadQuotes: missing or unreadable file returns []', () => {
+  assert.deepEqual(R.loadQuotes('/nonexistent/dir/quotes.md'), []);
+  assert.deepEqual(R.loadQuotes(undefined), []);
+});
+
+test('composeLines: appends quote as a third line when present', () => {
+  const out = R.composeLines({
+    model: '\x1b[2mOpus 4.8' + RESET,
+    effort: '',
+    branch: '',
+    pathSeg: '\x1b[2m~/x' + RESET,
+    middle: '',
+    ctxBar: 'CTX',
+    usageBar: '',
+    playtime: 'Hours spent in Gielinor: 66h',
+    quote: '\x1b[2m"Be one." —Marcus Aurelius' + RESET,
+  });
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[2m~/x' + RESET;
+  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
+  const line3 = '\x1b[2m"Be one." —Marcus Aurelius' + RESET;
+  assert.equal(out, line1 + '\n' + line2 + '\n' + line3);
+});
+
+test('composeLines: no quote key => unchanged two-line output', () => {
+  const out = R.composeLines({
+    model: '\x1b[2mOpus 4.8' + RESET,
+    effort: '',
+    branch: '',
+    pathSeg: '\x1b[2m~/x' + RESET,
+    middle: '',
+    ctxBar: 'CTX',
+    usageBar: '',
+    playtime: 'Hours spent in Gielinor: 66h',
+  });
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[2m~/x' + RESET;
+  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
+  assert.equal(out, line1 + '\n' + line2);
+});
+
+test('buildOutput: appends a deterministic dim quote third line', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-bo-quote-'));
+  try {
+    const qf = path.join(tmp, 'quotes.md');
+    fs.writeFileSync(qf, '## S\n- "Only quote." —Z\n');
+    const data = {
+      model: { display_name: 'Opus 4.8' },
+      workspace: { current_dir: '/home/kevin/proj' },
+      context_window: { used_percentage: 10 },
+    };
+    const out = R.buildOutput(data, {
+      homeDir: '/home/kevin', playtimeRaw: '⏱ 5h', branch: '', task: null,
+      gsdMiddle: '', quotesPath: qf, session: 'whatever',
+    });
+    const lines = out.split('\n');
+    assert.equal(lines.length, 3);
+    assert.equal(lines[2], '\x1b[2m"Only quote." —Z' + RESET);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('buildOutput: no quotesPath => unchanged two-line output', () => {
+  const data = {
+    model: { display_name: 'Opus 4.8' },
+    workspace: { current_dir: '/home/kevin/proj' },
+    context_window: { used_percentage: 10 },
+  };
+  const out = R.buildOutput(data, {
+    homeDir: '/home/kevin', playtimeRaw: '⏱ 5h', branch: '', task: null, gsdMiddle: '',
+  });
+  assert.equal(out.split('\n').length, 2);
+});
+
+test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', () => {
   const input = JSON.stringify({
     model: { display_name: 'Opus 4.8' },
     effort: { level: 'high' },
@@ -343,12 +485,79 @@ test('runStatusline end-to-end: pipes JSON in, prints two lines', () => {
   const out = execSync(`${JSON.stringify(process.execPath)} statusline-render.js`, {
     cwd: __dirname,
     input,
-    env: { ...process.env, GIELINOR_HOURS: '⏱ 66h' },
+    env: { ...process.env, GIELINOR_HOURS: '⏱ 66h', COLUMNS: '200' },
   }).toString();
   const lines = out.split('\n');
-  assert.equal(lines.length, 2);
+  assert.equal(lines.length, 3);
   assert.ok(lines[0].includes('Opus 4.8'));
   assert.ok(lines[0].includes('effort: high'));
   assert.ok(lines[1].includes('ctx '));
   assert.ok(lines[1].includes('Hours spent in Gielinor: 66h'));
+  assert.ok(lines[2].includes('"')); // a quote on line 3
+});
+
+test('wrapText: short text returns a single line', () => {
+  assert.deepEqual(R.wrapText('short enough', 80), ['short enough']);
+});
+
+test('wrapText: wraps on word boundaries to fit maxWidth', () => {
+  // widths: "the quick"=9, +" brown"=15, +" fox"=19; cap 10 -> break after each fit
+  assert.deepEqual(R.wrapText('the quick brown fox', 10), ['the quick', 'brown fox']);
+});
+
+test('wrapText: every produced line fits within maxWidth', () => {
+  const text = 'a fairly long sentence that should wrap across several rows neatly';
+  const lines = R.wrapText(text, 20);
+  assert.ok(lines.length > 1);
+  for (const line of lines) assert.ok(line.length <= 20, `"${line}" exceeds 20`);
+  assert.equal(lines.join(' '), text); // no content lost on word boundaries
+});
+
+test('wrapText: hard-breaks a word longer than the line', () => {
+  assert.deepEqual(R.wrapText('abcdefghij', 4), ['abcd', 'efgh', 'ij']);
+});
+
+test('wrapText: unknown/invalid maxWidth returns one unwrapped line', () => {
+  const long = 'x '.repeat(100).trim();
+  assert.deepEqual(R.wrapText(long, null), [long]);
+  assert.deepEqual(R.wrapText(long, undefined), [long]);
+  assert.deepEqual(R.wrapText(long, 0), [long]);
+  assert.deepEqual(R.wrapText(long, NaN), [long]);
+});
+
+test('wrapText: empty/falsy text returns []', () => {
+  assert.deepEqual(R.wrapText('', 80), []);
+});
+
+test('buildOutput: wraps a long quote onto additional dim rows', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sl-bo-wrap-'));
+  try {
+    const qf = path.join(tmp, 'quotes.md');
+    const longQuote = '"All we have to decide is what to do with the time that is given us." —Gandalf';
+    fs.writeFileSync(qf, '## S\n- ' + longQuote + '\n');
+    const data = {
+      model: { display_name: 'Opus 4.8' },
+      workspace: { current_dir: '/home/kevin/proj' },
+      context_window: { used_percentage: 10 },
+    };
+    const out = R.buildOutput(data, {
+      homeDir: '/home/kevin', playtimeRaw: '⏱ 5h', branch: '', task: null,
+      gsdMiddle: '', quotesPath: qf, session: 'whatever', columns: 30,
+    });
+    const lines = out.split('\n');
+    assert.ok(lines.length >= 4, 'long quote should wrap past a 3rd line');
+    // Every quote row (line 3 onward) is dim-wrapped and within the width.
+    for (const line of lines.slice(2)) {
+      assert.ok(line.startsWith('\x1b[2m') && line.endsWith(RESET));
+      const visible = line.replace('\x1b[2m', '').replace(RESET, '');
+      assert.ok(visible.length <= 30, `"${visible}" exceeds 30`);
+    }
+    // Reassembling the visible quote rows reproduces the original quote.
+    const visibleQuote = lines.slice(2)
+      .map((l) => l.replace('\x1b[2m', '').replace(RESET, ''))
+      .join(' ');
+    assert.equal(visibleQuote, longQuote);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
