@@ -42,12 +42,12 @@ test('renderBar: explicit color overrides threshold coloring at any value', () =
   assert.equal(R.renderBar(95, DIM), DIM + '█████████░ 95%' + RESET);
 });
 
-test('formatEffort: color-coded by level', () => {
-  assert.equal(R.formatEffort('low'), '\x1b[32meffort: low' + RESET);
-  assert.equal(R.formatEffort('medium'), '\x1b[32meffort: medium' + RESET);
-  assert.equal(R.formatEffort('high'), '\x1b[33meffort: high' + RESET);
-  assert.equal(R.formatEffort('xhigh'), '\x1b[38;5;208meffort: xhigh' + RESET);
-  assert.equal(R.formatEffort('max'), '\x1b[31meffort: max' + RESET);
+test('formatEffort: low/medium are action-colored; high and above are neutral', () => {
+  assert.equal(R.formatEffort('low'), '\x1b[31meffort: low!!!' + RESET);
+  assert.equal(R.formatEffort('medium'), '\x1b[38;5;208meffort: medium?' + RESET);
+  assert.equal(R.formatEffort('high'), 'effort: high');
+  assert.equal(R.formatEffort('xhigh'), 'effort: xhigh');
+  assert.equal(R.formatEffort('max'), 'effort: max');
 });
 
 test('formatEffort: empty when absent or unknown', () => {
@@ -85,14 +85,14 @@ test('formatPath: wraps shortenPath in dim', () => {
   assert.equal(R.formatPath('', '/home/kevin'), '');
 });
 
-test('formatPlaytime: strips stopwatch icon, adds Gielinor label', () => {
-  assert.equal(R.formatPlaytime('⏱ 66h'), 'Hours spent in Gielinor: 66h');
-  assert.equal(R.formatPlaytime('66h'), 'Hours spent in Gielinor: 66h');
+test('formatPlaytime: strips stopwatch icon, converts to days/hours, neutral color', () => {
+  assert.equal(R.formatPlaytime('⏱ 66h'), 'Time Played: 2 days, 18 hours');
+  assert.equal(R.formatPlaytime('66h'), 'Time Played: 2 days, 18 hours');
 });
 
-test('formatPlaytime: defaults to 0h when empty', () => {
-  assert.equal(R.formatPlaytime(''), 'Hours spent in Gielinor: 0h');
-  assert.equal(R.formatPlaytime(undefined), 'Hours spent in Gielinor: 0h');
+test('formatPlaytime: defaults to 0 days, 0 hours when empty', () => {
+  assert.equal(R.formatPlaytime(''), 'Time Played: 0 days, 0 hours');
+  assert.equal(R.formatPlaytime(undefined), 'Time Played: 0 days, 0 hours');
 });
 
 test('formatReset: empty when resets_at absent or invalid', () => {
@@ -125,11 +125,11 @@ test('composeLines: full output — line 1 carries task/state, line 2 is meters 
     middle: '\x1b[1mtask' + RESET,
     ctxBar: 'CTX',
     usageBar: 'USE',
-    playtime: 'Hours spent in Gielinor: 66h',
+    playtime: 'Time Played: 2 days, 18 hours',
   });
   const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[33meffort: high' + RESET +
     ' │ main │ \x1b[2m~/x' + RESET + ' │ \x1b[1mtask' + RESET;
-  const line2 = 'ctx CTX │ 5h USE │ Hours spent in Gielinor: 66h';
+  const line2 = 'ctx CTX │ 5h USE │ Time Played: 2 days, 18 hours';
   assert.equal(out, line1 + '\n' + line2);
 });
 
@@ -137,9 +137,9 @@ test('composeLines: reset segment sits between the 5h bar and playtime', () => {
   const out = R.composeLines({
     model: 'M', effort: '', branch: '', pathSeg: 'P', middle: '',
     ctxBar: 'CTX', usageBar: 'USE', reset: 'Session resets in: 1h 0m',
-    playtime: 'Hours spent in Gielinor: 66h',
+    playtime: 'Time Played: 2 days, 18 hours',
   });
-  const line2 = 'ctx CTX │ 5h USE │ Session resets in: 1h 0m │ Hours spent in Gielinor: 66h';
+  const line2 = 'ctx CTX │ 5h USE │ Session resets in: 1h 0m │ Time Played: 2 days, 18 hours';
   assert.ok(out.endsWith(line2), out);
 });
 
@@ -152,10 +152,10 @@ test('composeLines: degraded (no effort/branch/middle/usage)', () => {
     middle: '',
     ctxBar: 'CTX',
     usageBar: '',
-    playtime: 'Hours spent in Gielinor: 66h',
+    playtime: 'Time Played: 2 days, 18 hours',
   });
   const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[2m~/x' + RESET;
-  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
+  const line2 = 'ctx CTX │ Time Played: 2 days, 18 hours';
   assert.equal(out, line1 + '\n' + line2);
 });
 
@@ -174,12 +174,12 @@ test('buildOutput: assembles full line from data + injected I/O', () => {
     task: null,
     gsdMiddle: '\x1b[2mexecuting · auth (2/5)' + RESET,
   });
-  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[33meffort: high' + RESET +
+  const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ effort: high' +
     ' │ main │ \x1b[2m~/proj' + RESET + ' │ \x1b[2mexecuting · auth (2/5)' + RESET;
   const line2 = '\x1b[32mctx' + RESET + ' \x1b[32m███░░░░░░░ 38%' + RESET +
     ' \x1b[32m380k/1M' + RESET +
     ' │ 5h \x1b[2m██░░░░░░░░ 22%' + RESET +
-    ' │ Hours spent in Gielinor: 66h';
+    ' │ Time Played: 2 days, 18 hours';
   assert.equal(out, line1 + '\n' + line2);
 });
 
@@ -196,7 +196,9 @@ test('buildOutput: includes session reset countdown after the 5h bar', () => {
     gsdMiddle: '', now,
   });
   assert.ok(out.includes('5h '));
-  assert.ok(out.includes(' │ Session resets in: 3h 5m │ Hours spent in Gielinor: 5h'), out);
+  assert.ok(out.includes(' │ Session resets in: 3h 5m │ '), out);
+  assert.ok(out.includes('Time Played:'), out);
+  assert.ok(out.includes('0 days, 5 hours'), out);
 });
 
 test('buildOutput: active task (bold) takes precedence over gsd middle', () => {
@@ -226,7 +228,8 @@ test('buildOutput: hides ctx bar when used_percentage is null', () => {
     homeDir: '/home/kevin', playtimeRaw: '⏱ 1h', branch: '', task: null, gsdMiddle: '',
   });
   assert.ok(!out.includes('ctx '));
-  assert.ok(out.includes('Hours spent in Gielinor: 1h'));
+  assert.ok(out.includes('Time Played:'));
+  assert.ok(out.includes('0 days, 1 hours'));
 });
 
 test('buildOutput: hides 5h bar when rate_limits absent', () => {
@@ -463,11 +466,11 @@ test('composeLines: appends quote as a third line when present', () => {
     middle: '',
     ctxBar: 'CTX',
     usageBar: '',
-    playtime: 'Hours spent in Gielinor: 66h',
+    playtime: 'Time Played: 2 days, 18 hours',
     quote: '\x1b[2m"Be one." —Marcus Aurelius' + RESET,
   });
   const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[2m~/x' + RESET;
-  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
+  const line2 = 'ctx CTX │ Time Played: 2 days, 18 hours';
   const line3 = '\x1b[2m"Be one." —Marcus Aurelius' + RESET;
   assert.equal(out, line1 + '\n' + line2 + '\n' + line3);
 });
@@ -481,10 +484,10 @@ test('composeLines: no quote key => unchanged two-line output', () => {
     middle: '',
     ctxBar: 'CTX',
     usageBar: '',
-    playtime: 'Hours spent in Gielinor: 66h',
+    playtime: 'Time Played: 2 days, 18 hours',
   });
   const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[2m~/x' + RESET;
-  const line2 = 'ctx CTX │ Hours spent in Gielinor: 66h';
+  const line2 = 'ctx CTX │ Time Played: 2 days, 18 hours';
   assert.equal(out, line1 + '\n' + line2);
 });
 
@@ -551,7 +554,7 @@ test('composeLines: colors ctx label and appends token count when ctxColor + ctx
   const out = R.composeLines({
     model: 'M', effort: '', branch: '', pathSeg: 'P', middle: '',
     ctxBar: 'BAR', ctxColor: GREEN, ctxTokens: '100k/200k',
-    usageBar: '', playtime: 'Hours spent in Gielinor: 1h',
+    usageBar: '', playtime: 'Time Played: 0 days, 1 hours',
   });
   assert.ok(out.includes(GREEN + 'ctx' + RESET));
   assert.ok(out.includes(GREEN + '100k/200k' + RESET));
@@ -560,7 +563,7 @@ test('composeLines: colors ctx label and appends token count when ctxColor + ctx
 test('composeLines: plain ctx label when no ctxColor (backward compat)', () => {
   const out = R.composeLines({
     model: 'M', effort: '', branch: '', pathSeg: 'P', middle: '',
-    ctxBar: 'CTX', usageBar: '', playtime: 'Hours spent in Gielinor: 1h',
+    ctxBar: 'CTX', usageBar: '', playtime: 'Time Played: 0 days, 1 hours',
   });
   assert.ok(out.includes('ctx CTX'));
 });
@@ -583,7 +586,8 @@ test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', 
   assert.ok(lines[0].includes('Opus 4.8'));
   assert.ok(lines[0].includes('effort: high'));
   assert.ok(lines[1].includes('ctx'));
-  assert.ok(lines[1].includes('Hours spent in Gielinor: 66h'));
+  assert.ok(lines[1].includes('Time Played:'));
+  assert.ok(lines[1].includes('2 days, 18 hours'));
   assert.ok(lines[2].includes('"')); // a quote on line 3
 });
 

@@ -36,7 +36,6 @@ function renderBar(pct, color) {
 }
 
 const RED = '\x1b[31m';
-const EFFORT_COLORS = { low: GREEN, medium: GREEN, high: YELLOW, xhigh: ORANGE, max: RED };
 
 function fmtK(n) {
   if (n >= 1_000_000) {
@@ -61,9 +60,13 @@ function formatCtxTokens(usedPct, contextWindow) {
 
 // effort.level is one of low|medium|high|xhigh|max, or absent when the model
 // does not support the effort parameter. Unknown/absent => no segment.
+// low/medium are highlighted as action signals; high and above are neutral.
 function formatEffort(level) {
-  if (!level || !(level in EFFORT_COLORS)) return '';
-  return `${EFFORT_COLORS[level]}effort: ${level}${RESET}`;
+  const known = ['low', 'medium', 'high', 'xhigh', 'max'];
+  if (!level || !known.includes(level)) return '';
+  if (level === 'low') return `${RED}effort: low!!!${RESET}`;
+  if (level === 'medium') return `${ORANGE}effort: medium?${RESET}`;
+  return `effort: ${level}`;
 }
 
 // Deterministic 32-bit FNV-1a hash of a string. Stable across runs and
@@ -158,10 +161,14 @@ function formatPath(dir, home) {
   return `${DIM}${shortenPath(dir, home)}${RESET}`;
 }
 
-// The cache value looks like "⏱ 66h"; strip the icon and relabel.
+// The cache value looks like "⏱ 66h"; strip the icon, convert to days/hours.
 function formatPlaytime(raw) {
   const v = String(raw || '').replace(/^⏱\s*/, '').trim() || '0h';
-  return `Hours spent in Gielinor: ${v}`;
+  const m = v.match(/^(\d+)h/);
+  const totalHours = m ? parseInt(m[1], 10) : 0;
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  return `Time Played: ${days} days, ${hours} hours`;
 }
 
 // "Session resets in: 2h 34m" from the 5h window's epoch-seconds reset time
