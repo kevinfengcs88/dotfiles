@@ -38,6 +38,27 @@ function renderBar(pct, color) {
 const RED = '\x1b[31m';
 const EFFORT_COLORS = { low: GREEN, medium: GREEN, high: YELLOW, xhigh: ORANGE, max: RED };
 
+function fmtK(n) {
+  if (n >= 1_000_000) {
+    const m = n / 1_000_000;
+    return `${Number.isInteger(m) ? m : parseFloat(m.toFixed(1))}M`;
+  }
+  return `${Math.round(n / 1_000)}k`;
+}
+
+function formatCtxTokens(usedPct, contextWindow) {
+  const max = contextWindow && contextWindow.context_window_size;
+  if (!max) return '';
+  const rawUsed = contextWindow.total_input_tokens;
+  const used = rawUsed != null
+    ? rawUsed
+    : (usedPct != null && !Number.isNaN(Number(usedPct))
+        ? Math.round(Number(usedPct) / 100 * max)
+        : null);
+  if (used == null) return '';
+  return `${fmtK(used)}/${fmtK(max)}`;
+}
+
 // effort.level is one of low|medium|high|xhigh|max, or absent when the model
 // does not support the effort parameter. Unknown/absent => no segment.
 function formatEffort(level) {
@@ -160,9 +181,16 @@ function formatReset(resetsAt, now) {
 // Line 1 = identity + location + current task/state, all pipe-separated.
 // Line 2 = meters + playtime. Absent segments are dropped so separators never
 // collapse to " │ │ ".
-function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, usageBar, reset, playtime, quote }) {
+function composeLines({ model, effort, branch, pathSeg, middle, ctxBar, ctxColor, ctxTokens, usageBar, reset, playtime, quote }) {
   const line1 = [model, effort, branch, pathSeg, middle].filter(Boolean).join(' │ ');
-  const ctxSeg = ctxBar ? `ctx ${ctxBar}` : '';
+  let ctxSeg = '';
+  if (ctxBar) {
+    const label = ctxColor ? `${ctxColor}ctx${RESET}` : 'ctx';
+    const tokenSuffix = ctxTokens
+      ? ` ${ctxColor || ''}${ctxTokens}${ctxColor ? RESET : ''}`
+      : '';
+    ctxSeg = `${label} ${ctxBar}${tokenSuffix}`;
+  }
   const usageSeg = usageBar ? `5h ${usageBar}` : '';
   const line2 = [ctxSeg, usageSeg, reset, playtime].filter(Boolean).join(' │ ');
   const lines = [line1];
@@ -180,7 +208,9 @@ function buildOutput(data, ctx) {
   const pathSeg = formatPath(dir, homeDir);
 
   const ctxPct = data.context_window && data.context_window.used_percentage;
+  const ctxColor = ctxPct != null ? colorFor(Number(ctxPct)) : '';
   const ctxBar = ctxPct == null ? '' : renderBar(ctxPct);
+  const ctxTokens = ctxPct == null ? '' : formatCtxTokens(ctxPct, data.context_window);
 
   const usagePct = data.rate_limits && data.rate_limits.five_hour &&
     data.rate_limits.five_hour.used_percentage;
@@ -205,7 +235,7 @@ function buildOutput(data, ctx) {
 
   return composeLines({
     model, effort, branch: branch || '', pathSeg,
-    middle, ctxBar, usageBar, reset, playtime, quote,
+    middle, ctxBar, ctxColor, ctxTokens, usageBar, reset, playtime, quote,
   });
 }
 
@@ -341,6 +371,7 @@ module.exports = {
   formatPlaytime, formatReset, composeLines, buildOutput, detectBranch,
   readActiveTask, getGsdMiddle, writeBridge,
   hash, loadQuotes, pickQuote, wrapText,
+  fmtK, formatCtxTokens,
 };
 
 if (require.main === module) runStatusline();

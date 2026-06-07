@@ -164,7 +164,7 @@ test('buildOutput: assembles full line from data + injected I/O', () => {
     model: { display_name: 'Opus 4.8' },
     effort: { level: 'high' },
     workspace: { current_dir: '/home/kevin/proj' },
-    context_window: { used_percentage: 38 },
+    context_window: { used_percentage: 38, context_window_size: 1_000_000, total_input_tokens: 380_000 },
     rate_limits: { five_hour: { used_percentage: 22 } },
   };
   const out = R.buildOutput(data, {
@@ -176,7 +176,8 @@ test('buildOutput: assembles full line from data + injected I/O', () => {
   });
   const line1 = '\x1b[2mOpus 4.8' + RESET + ' │ \x1b[33meffort: high' + RESET +
     ' │ main │ \x1b[2m~/proj' + RESET + ' │ \x1b[2mexecuting · auth (2/5)' + RESET;
-  const line2 = 'ctx \x1b[32m███░░░░░░░ 38%' + RESET +
+  const line2 = '\x1b[32mctx' + RESET + ' \x1b[32m███░░░░░░░ 38%' + RESET +
+    ' \x1b[32m380k/1M' + RESET +
     ' │ 5h \x1b[2m██░░░░░░░░ 22%' + RESET +
     ' │ Hours spent in Gielinor: 66h';
   assert.equal(out, line1 + '\n' + line2);
@@ -238,7 +239,7 @@ test('buildOutput: hides 5h bar when rate_limits absent', () => {
     homeDir: '/home/kevin', playtimeRaw: '⏱ 1h', branch: '', task: null, gsdMiddle: '',
   });
   assert.ok(!out.includes('5h '));
-  assert.ok(out.includes('ctx '));
+  assert.ok(out.includes('ctx'));
 });
 
 test('detectBranch: empty string for non-repo dir', () => {
@@ -521,6 +522,49 @@ test('buildOutput: no quotesPath => unchanged two-line output', () => {
   assert.equal(out.split('\n').length, 2);
 });
 
+test('fmtK: formats thousands as k and millions as M', () => {
+  assert.equal(R.fmtK(200_000), '200k');
+  assert.equal(R.fmtK(500_000), '500k');
+  assert.equal(R.fmtK(380_000), '380k');
+  assert.equal(R.fmtK(1_000_000), '1M');
+  assert.equal(R.fmtK(1_500_000), '1.5M');
+  assert.equal(R.fmtK(0), '0k');
+});
+
+test('formatCtxTokens: uses context_window_size as max, total_input_tokens as used', () => {
+  // direct token counts when both fields present
+  assert.equal(R.formatCtxTokens(38, { context_window_size: 1_000_000, total_input_tokens: 380_000 }), '380k/1M');
+  // falls back to pct-based estimate when total_input_tokens absent
+  assert.equal(R.formatCtxTokens(10, { context_window_size: 200_000 }), '20k/200k');
+  // extended context (e.g. sonnet with 500k window)
+  assert.equal(R.formatCtxTokens(20, { context_window_size: 500_000, total_input_tokens: 100_000 }), '100k/500k');
+  // no context_window_size → empty (never show wrong hardcoded value)
+  assert.equal(R.formatCtxTokens(38, {}), '');
+  assert.equal(R.formatCtxTokens(38, null), '');
+  // null/NaN percentage with no total_input_tokens → empty
+  assert.equal(R.formatCtxTokens(null, { context_window_size: 200_000 }), '');
+  assert.equal(R.formatCtxTokens(NaN, { context_window_size: 200_000 }), '');
+});
+
+test('composeLines: colors ctx label and appends token count when ctxColor + ctxTokens provided', () => {
+  const GREEN = '\x1b[32m';
+  const out = R.composeLines({
+    model: 'M', effort: '', branch: '', pathSeg: 'P', middle: '',
+    ctxBar: 'BAR', ctxColor: GREEN, ctxTokens: '100k/200k',
+    usageBar: '', playtime: 'Hours spent in Gielinor: 1h',
+  });
+  assert.ok(out.includes(GREEN + 'ctx' + RESET));
+  assert.ok(out.includes(GREEN + '100k/200k' + RESET));
+});
+
+test('composeLines: plain ctx label when no ctxColor (backward compat)', () => {
+  const out = R.composeLines({
+    model: 'M', effort: '', branch: '', pathSeg: 'P', middle: '',
+    ctxBar: 'CTX', usageBar: '', playtime: 'Hours spent in Gielinor: 1h',
+  });
+  assert.ok(out.includes('ctx CTX'));
+});
+
 test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', () => {
   const input = JSON.stringify({
     model: { display_name: 'Opus 4.8' },
@@ -538,7 +582,7 @@ test('runStatusline end-to-end: pipes JSON in, prints three lines incl. quote', 
   assert.equal(lines.length, 3);
   assert.ok(lines[0].includes('Opus 4.8'));
   assert.ok(lines[0].includes('effort: high'));
-  assert.ok(lines[1].includes('ctx '));
+  assert.ok(lines[1].includes('ctx'));
   assert.ok(lines[1].includes('Hours spent in Gielinor: 66h'));
   assert.ok(lines[2].includes('"')); // a quote on line 3
 });
