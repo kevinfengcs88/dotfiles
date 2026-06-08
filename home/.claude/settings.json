@@ -242,10 +242,10 @@
     "frontend-design@claude-plugins-official": true,
     "compound-engineering@compound-engineering-plugin": true,
     "ralph-loop@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true,
-    "supabase@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
+    "vercel@claude-plugins-official": false,
+    "supabase@claude-plugins-official": false,
+    "playwright@claude-plugins-official": false,
+    "superpowers@claude-plugins-official": false,
     "context7@claude-plugins-official": true,
     "firecrawl@claude-plugins-official": false,
     "mgrep@Mixedbread-Grep": true,
@@ -254,12 +254,12 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "hookify@claude-plugins-official": false,
-    "code-simplifier@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": false,
+    "feature-dev@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": false,
     "code-review@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": false,
-    "ecc@ecc": true
+    "ecc@ecc": false
   },
   "extraKnownMarketplaces": {
     "compound-engineering-plugin": {
