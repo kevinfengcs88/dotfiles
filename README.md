@@ -20,6 +20,28 @@ That's it — `./install.sh` symlinks everything under `home/` into `$HOME`.
 Same command on both operating systems. Run it again any time to re-sync;
 `./install.sh --delete` removes the symlinks.
 
+### Migrating a machine that still has old hand-made symlinks
+
+Before stow, symlinks were created by hand. To switch such a machine over, clear the
+old links first so stow has a clean target, then link:
+
+```sh
+# Remove ONLY symlinks in $HOME that point into dotfiles (safe; leaves real files):
+find ~ ~/.config ~/.claude -maxdepth 2 -type l -lname '*dotfiles*' -delete
+cd ~/dotfiles && git pull && ./install.sh
+```
+
+If `./install.sh` reports a **CONFLICT**, a real (non-symlink) file is sitting where a
+symlink should go — common on a Mac with a pre-existing `~/.zshrc`. Back it up and
+re-run; stow refuses to clobber real files, which is the safety net:
+
+```sh
+mv ~/.zshrc ~/.zshrc.bak && ./install.sh
+```
+
+Steady state on both machines is then identical: `git pull` to get changes, and
+`./install.sh` only when you've added/renamed/removed a file (plain edits need nothing).
+
 ## How this is laid out
 
 - `home/` — the **stow package**. Its tree mirrors `$HOME` exactly. Stowing it

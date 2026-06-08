@@ -3,3 +3,7 @@
 
 # stray tmux sockets
 .tmux-*.sock
+
+# stray Claude Code session transcripts
+STOW.md
+*.session.md
