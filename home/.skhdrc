@@ -4,6 +4,12 @@ ctrl + alt - r : yabai --restart-service
 # Clean links
 hyper - u : ~/.cargo/bin/hl "$(pbpaste)" | tr -d '\n' | pbcopy
 
+# MacBook (internal) brightness: hyper - minus -> 0% (dark), hyper - plus/equals -> 50%
+# Uses the private DisplayServices API (works on Apple Silicon, no Accessibility prompt).
+# 0x1B = minus key -> 0% (dark) | 0x18 = equals/plus key -> 50%
+hyper - 0x1B : /usr/bin/python3 -c 'import ctypes;from ctypes.util import find_library;cg=ctypes.CDLL(find_library("CoreGraphics"));cg.CGMainDisplayID.restype=ctypes.c_uint32;ds=ctypes.CDLL("/System/Library/PrivateFrameworks/DisplayServices.framework/DisplayServices");ds.DisplayServicesSetBrightness.argtypes=[ctypes.c_uint32,ctypes.c_float];ds.DisplayServicesSetBrightness(cg.CGMainDisplayID(),0.0)'
+hyper - 0x18 : /usr/bin/python3 -c 'import ctypes;from ctypes.util import find_library;cg=ctypes.CDLL(find_library("CoreGraphics"));cg.CGMainDisplayID.restype=ctypes.c_uint32;ds=ctypes.CDLL("/System/Library/PrivateFrameworks/DisplayServices.framework/DisplayServices");ds.DisplayServicesSetBrightness.argtypes=[ctypes.c_uint32,ctypes.c_float];ds.DisplayServicesSetBrightness(cg.CGMainDisplayID(),0.5)'
+
 # focus window
 hyper - j : yabai -m window --focus south
 hyper - k : yabai -m window --focus north
