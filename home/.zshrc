@@ -118,6 +118,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/4.0.0/bin:$PATH"
     alias kevin="ssh kevin@pop-os"
     alias n8n="ssh root@vps"
+    alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 elif [[ "$OSTYPE" == linux* ]]; then
     alias n8n='ssh root@vps'
     export PATH="$PATH:/opt/nvim-linux64/bin"
