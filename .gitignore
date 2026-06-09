@@ -7,3 +7,7 @@
 # stray Claude Code session transcripts
 STOW.md
 *.session.md
+
+# python bytecode
+__pycache__/
+*.pyc
