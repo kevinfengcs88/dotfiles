@@ -13,24 +13,33 @@ of WARP's tunnel via Split Tunnels.
 > full-traffic VPN, overrides the split tunnel, and breaks coexistence. SSH-only is the
 > supported lane.
 
-## Why it conflicts (root cause)
+## Root cause and the corrected mechanism
 
 - WARP (Gateway with WARP / MASQUE) tunnels 100% of traffic + DNS to Cloudflare.
 - Tailscale needs to reach `controlplane.tailscale.com:443` to stay authenticated, and
-  DERP relays for fallback when a direct peer connection isn't available.
-- WARP intercepts those connections → `write: broken pipe` on the control key fetch →
-  Tailscale logs itself out (and can't even log back in, because login also needs the
-  control plane).
-- A **domain-based** WARP exclude (`tailscale.com`) does NOT fix this: WARP learns
-  domain→IP by snooping system DNS, but Tailscale resolves the control plane via its own
-  **bootstrap DNS**, so WARP never sees the lookup. Exclude by **IP range** instead.
+  **DERP relays** when a direct peer connection isn't available (i.e. on any foreign
+  network — café, hotel, phone hotspot — where `pop-os` isn't on the local LAN).
+- **The mechanism:** Tailscale binds its sockets to the **physical interface source
+  IP**. If a Tailscale destination is routed *through WARP*, the physical source IP no
+  longer matches the tunnel's path, and long-lived/streaming connections silently break
+  — control plane fails with `write: broken pipe`; a DERP relay shows `tx … rx 0`
+  ("could not connect to relay"). Short one-shot requests (a `curl` GET) may still
+  return 200, which is misleading — the *relay session* is what breaks.
+- **Therefore every Tailscale control/DERP range must be EXCLUDED so it routes direct
+  over the physical interface, not through WARP.** This applies to **both IPv4 and
+  IPv6**.
+- A **domain-based** exclude (`tailscale.com`) does NOT work: WARP learns domain→IP by
+  snooping system DNS, but Tailscale resolves these via its own **bootstrap DNS**, so
+  WARP never sees the lookup. Exclude by **IP range**.
+- An exclude can never *break* reachability or normal browsing — it only reroutes those
+  specific Tailscale IPs to go direct. So home and phone-hotspot usage stay safe.
 
 ## The working setup
 
 ### 1. Create a free Cloudflare Zero Trust org
 
-- dash.cloudflare.com → **Zero Trust** → pick a team name (`kevinfeng`) → **Zero Trust
-  Free** plan (asks for a card but charges $0).
+- dash.cloudflare.com → **Zero Trust** → team name `kevinfeng` → **Zero Trust Free**
+  plan (asks for a card but charges $0).
 
 ### 2. Allow this device to enroll
 
@@ -42,83 +51,91 @@ Fresh orgs reject all enrollment ("Enrollment request is invalid") until a polic
 
 ### 3. Enroll the WARP app into the org
 
-- WARP app → it's one app, two modes. Choose **Cloudflare One Client** (not "Private
+- WARP app → one app, two modes. Choose **Cloudflare One Client** (not "Private
   browsing") → **Continue** → enter team name `kevinfeng` → verify via emailed PIN.
 - Confirm: **Connectivity** tab shows `WARP tunnel protocol: MASQUE (HTTPS via UDP)` +
-  `DNS over HTTPS`, status **Connected**. That's the full Traffic+DNS tunnel.
+  `DNS over HTTPS`, status **Connected**.
 
 ### 4. Split Tunnels — exclude Tailscale (the core fix)
 
 **Team & Resources → Devices → Device profiles → (Default profile) Configure →
 Split Tunnels → Exclude IPs and domains → Manage.** Add these IP destinations:
 
-| Value                  | Covers                                          |
-| ---------------------- | ----------------------------------------------- |
-| `100.64.0.0/10`        | Tailnet IPv4 (CGNAT) — peer addresses           |
-| `fd7a:115c:a1e0::/48`  | Tailnet IPv6 (ULA)                              |
-| `2606:b740::/32`       | Control plane + logging (all of it, IPv6)       |
-| `2607:f740::/32`       | All DERP relays, every region (IPv6)            |
-| `192.200.0.0/24`       | Control plane (IPv4)                            |
-| `199.165.136.0/24`     | Logging (IPv4)                                  |
-
-The two IPv6 `/32`s are the durable win: they cover control, logging, and every DERP
-region permanently, surviving IP churn and travel. (A `tailscale.com` domain rule is
-harmless but ineffective — see root cause.)
-
-IPv4 DERP fallback (only if `tailscale ping pop-os` fails on the relay path after login;
-NYC region example, get others from the DERP map command below):
-`199.38.181.0/24`, `209.177.145.0/24`.
+| Value                  | Covers                                              |
+| ---------------------- | --------------------------------------------------- |
+| `100.64.0.0/10`        | Tailnet IPv4 (CGNAT) — peer addresses               |
+| `fd7a:115c:a1e0::/48`  | Tailnet IPv6 (ULA)                                  |
+| `2606:b740::/32`       | Control plane + logging (IPv6)                      |
+| `192.200.0.0/24`       | Control plane (IPv4)                                |
+| `199.165.136.0/24`     | Logging (IPv4)                                      |
+| `2607:f740::/32`       | **All** DERP relays over IPv6 (Tailscale owns /32)  |
+| `199.38.181.0/24`      | NYC DERP (IPv4)                                      |
+| `209.177.145.0/24`     | NYC DERP (IPv4)                                      |
+| `162.248.221.0/24`     | Toronto DERP (IPv4)                                 |
 
 ### 5. Local Domain Fallback — keep MagicDNS working
 
 DNS flows through WARP now, so hand `.ts.net` back to Tailscale.
 
 - Same device profile → **Local Domain Fallback → Manage**
-- Add `ts.net` → DNS server `100.100.100.100` (Tailscale's MagicDNS resolver).
+- Add `ts.net` → DNS server `100.100.100.100`.
 
-### 6. Propagate (important!)
+### 6. Propagate
 
-Split-tunnel changes take **up to ~10 minutes** to reach the device. Don't conclude it's
-broken before then. To force a re-pull: Disconnect/Connect WARP. Login worked here once
-propagation completed.
+Split-tunnel changes take **up to ~10 minutes** to reach the device. Force a re-pull by
+Disconnecting/Connecting WARP. Don't conclude it's broken before propagation.
 
 ### 7. macOS: expose the Tailscale CLI
 
-The GUI app keeps the binary in its bundle. Added to `home/.zshrc` (Darwin branch only):
+The GUI app keeps the binary in its bundle. In `home/.zshrc` (Darwin branch only):
 
 ```sh
 alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 ```
+
+## DERP relays: the travel-coverage gap
+
+DERP picks the **geographically nearest** relay. The IPv4 DERP excludes above cover
+**NYC + Toronto** only — enough for home and the NYC area (including phone hotspot that
+egresses there). On an **IPv4-only** network in another region, Tailscale picks a
+different DERP whose `/24` isn't excluded, and SSH breaks *there* (same `rx 0` symptom).
+The single `2607:f740::/32` rule covers all DERP regions over IPv6, so IPv6-capable
+networks are already travel-proof.
+
+Full IPv4 coverage = all ~47 DERP `/24`s, which also **drift over time** as Tailscale
+adds/moves relays. Hand-maintaining that isn't durable. The sync script
+(`scripts/sync-warp-tailscale-excludes.py`) solves it: it pulls the live DERP map and
+sets the WARP Split Tunnel exclude list via the Cloudflare API. Once it runs, the
+Tailscale/DERP excludes are managed by the script — no manual UI editing.
 
 ## Verification
 
 ```sh
 # WARP is tunneling everything (note: NO trailing slash on the URL)
 curl https://www.cloudflare.com/cdn-cgi/trace | grep warp=        # -> warp=on
-# or open https://1.1.1.1/help in a browser
 
-# Tailscale is up and sees the desktop
+# Tailscale is up and sees the desktop; relay path is healthy (rx > 0)
 tailscale status                                                  # pop-os present
-tailscale ping pop-os
+tailscale ping pop-os                                             # pong via DERP(...)
 
 # The real test (uses ~/.zshrc alias `kevin` = ssh kevin@pop-os)
 ssh kevin@pop-os
 ```
 
-Inspect what WARP actually has live on the device (great for debugging "did it
-propagate?"):
-
-```sh
-warp-cli settings        # shows Exclude-mode hosts/ips + Fallback domains
-```
-
-Done when `warp=on` AND `ssh kevin@pop-os` connects.
+`UDP: false` / "direct connection not established" in `tailscale netcheck` is expected
+here — relaying through DERP over TCP is fine for SSH. Inspect what WARP actually has
+live on the device with `warp-cli settings` (shows the Exclude-mode list + Fallback
+domains).
 
 ## Reference: get current DERP relay IPs
 
 ```sh
-curl -s https://login.tailscale.com/derpmap/default | \
-  python3 -c "import json,sys; d=json.load(sys.stdin); [print(c, [ (n.get('HostName'),n.get('IPv4'),n.get('IPv6')) for n in r.get('Nodes',[]) ]) for c,r in d['Regions'].items()]"
+curl -s https://login.tailscale.com/derpmap/default | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+for c,r in d['Regions'].items():
+    for n in r.get('Nodes',[]): print(c, n.get('HostName'), n.get('IPv4'), n.get('IPv6'))
+"
 ```
 
 ## Sources
