@@ -68,7 +68,7 @@ Split Tunnels → Exclude IPs and domains → Manage.** Add these IP destination
 | `2606:b740::/32`       | Control plane + logging (IPv6)                      |
 | `192.200.0.0/24`       | Control plane (IPv4)                                |
 | `199.165.136.0/24`     | Logging (IPv4)                                      |
-| `2607:f740::/32`       | **All** DERP relays over IPv6 (Tailscale owns /32)  |
+| `2607:f740::/32`       | Tailscale-hosted DERP over IPv6 (NOT third-party DERP — see gap)  |
 | `199.38.181.0/24`      | NYC DERP (IPv4)                                      |
 | `209.177.145.0/24`     | NYC DERP (IPv4)                                      |
 | `162.248.221.0/24`     | Toronto DERP (IPv4)                                 |
@@ -97,16 +97,18 @@ alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 
 DERP picks the **geographically nearest** relay. The IPv4 DERP excludes above cover
 **NYC + Toronto** only — enough for home and the NYC area (including phone hotspot that
-egresses there). On an **IPv4-only** network in another region, Tailscale picks a
-different DERP whose `/24` isn't excluded, and SSH breaks *there* (same `rx 0` symptom).
-The single `2607:f740::/32` rule covers all DERP regions over IPv6, so IPv6-capable
-networks are already travel-proof.
+egresses there). On a network in another region, Tailscale picks a different DERP whose range isn't
+excluded, and SSH breaks *there* (same `rx 0` symptom). Note the manual `2607:f740::/32`
+rule only covers **Tailscale-hosted** DERP over IPv6 — DERP servers are actually spread
+across ~13 provider blocks (Vultr, Hetzner, Linode, …), so it is **not** full v6
+coverage.
 
-Full IPv4 coverage = all ~47 DERP `/24`s, which also **drift over time** as Tailscale
-adds/moves relays. Hand-maintaining that isn't durable. The sync script
-(`scripts/sync-warp-tailscale-excludes.py`) solves it: it pulls the live DERP map and
-sets the WARP Split Tunnel exclude list via the Cloudflare API. Once it runs, the
-Tailscale/DERP excludes are managed by the script — no manual UI editing.
+Full coverage = every DERP relay IP (~47 IPv4 `/24`s + ~37 IPv6 `/64`s), and the set
+**drifts over time** as Tailscale adds/moves relays. Hand-maintaining that isn't
+durable. The sync script (`scripts/sync-warp-tailscale-excludes.py`) solves it: it pulls
+the live DERP map and sets the WARP Split Tunnel exclude list via the Cloudflare API,
+keeping prefixes tight (/24, /64) so no whole provider block leaks outside WARP. Once it
+runs, the Tailscale/DERP excludes are managed by the script — no manual UI editing.
 
 ## Verification
 
