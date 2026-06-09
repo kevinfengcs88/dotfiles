@@ -83,6 +83,14 @@ Steady state on both machines is then identical: `git pull` to get changes, and
   aborts with a CONFLICT rather than clobbering it. Move/back up that file, then
   re-run. Use `stow -n -v home` to dry-run and see the plan without touching disk.
 
+## TODO
+
+- **WARP + Tailscale travel coverage:** run `scripts/sync-warp-tailscale-excludes.py`
+  to set the full DERP exclude list via the Cloudflare API (needs `CLOUDFLARE_API_TOKEN`
+  + `CF_ACCOUNT_ID`; `--dry-run` first), then optionally schedule it. Currently only
+  NYC/Toronto DERP are excluded by hand, so SSH-to-`pop-os` may break on untrusted Wi-Fi
+  in other regions. See [`docs/warp-tailscale-coexistence.md`](docs/warp-tailscale-coexistence.md).
+
 ## macos stuff
 
 - use karabiner to rebind caps lock to hyper
