@@ -34,10 +34,23 @@ if [ "${1:-}" = "--delete" ] || [ "${1:-}" = "-D" ]; then
   echo "Unlinking dotfiles from $HOME ..."
   run_stow -D -t "$HOME" home
   echo "Done. Symlinks removed (your repo files are untouched)."
+
+  if [ -d "$REPO_DIR/etc" ]; then
+    echo "Unlinking system dotfiles from /etc (sudo required) ..."
+    sudo stow -D -t /etc etc
+    echo "Done. /etc symlinks removed."
+  fi
 else
   # -R (restow) = clean up stale links then relink. Idempotent: run it any time
   # you add, rename, or remove a file under home/.
   echo "Linking dotfiles into $HOME ..."
   run_stow -R -t "$HOME" home
   echo "Done. $HOME now points at $REPO_DIR/home."
+
+  # Link system config files into /etc (requires sudo).
+  if [ -d "$REPO_DIR/etc" ]; then
+    echo "Linking system dotfiles into /etc (sudo required) ..."
+    sudo stow -R -t /etc etc
+    echo "Done. /etc symlinks point at $REPO_DIR/etc."
+  fi
 fi
