@@ -81,16 +81,6 @@
         ]
       },
       {
-        "matcher": "Grep|Bash|WebSearch",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/mgrep-enforce.cjs\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
         "matcher": "Grep|Glob|Bash",
         "hooks": [
           {
