@@ -73,7 +73,7 @@ claude_setup() {
   if command -v headroom >/dev/null 2>&1; then
     echo "  = headroom"
   else
-    echo "  + pip install --user headroom-ai"; pip install --user headroom-ai
+    echo "  + python3 -m pip install --user headroom-ai"; python3 -m pip install --user headroom-ai
   fi
 
   # 3. rtk (Rust Token Killer; defensive hook no-ops until present)
@@ -152,7 +152,7 @@ claude_auth_report() {
   if command -v headroom >/dev/null 2>&1; then
     echo "  ok  headroom: installed (run 'headroom wrap claude'; no separate login for the proxy)"
   else
-    echo "  TODO headroom: pip install --user headroom-ai"
+    echo "  TODO headroom: python3 -m pip install --user headroom-ai"
   fi
 
   # serena: local, no auth.
@@ -201,7 +201,7 @@ else
 
   if [ "$SKIP_CLAUDE" -eq 0 ]; then
     claude_setup
-    claude_auth_report   # defined in Task 7
+    claude_auth_report
   else
     echo "Skipping Claude setup (--skip-claude)."
   fi
