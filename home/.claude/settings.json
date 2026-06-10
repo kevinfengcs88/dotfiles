@@ -67,7 +67,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "sonnet",
+  "model": "fable",
   "hooks": {
     "PreToolUse": [
       {
@@ -76,6 +76,16 @@
           {
             "type": "command",
             "command": "node \"$HOME/.claude/hooks/timestamp-tooluse.cjs\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Grep|Bash|WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/mgrep-enforce.cjs\"",
             "timeout": 5
           }
         ]
@@ -244,8 +254,8 @@
     "ralph-loop@claude-plugins-official": false,
     "vercel@claude-plugins-official": false,
     "supabase@claude-plugins-official": false,
-    "playwright@claude-plugins-official": false,
-    "superpowers@claude-plugins-official": false,
+    "playwright@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "firecrawl@claude-plugins-official": false,
     "mgrep@Mixedbread-Grep": true,
