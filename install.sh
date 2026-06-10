@@ -62,7 +62,10 @@ claude_setup() {
   # 1. npm globals (mgrep intentionally excluded)
   local npm_globals=(@anthropic-ai/claude-code gitnexus firecrawl-cli supabase)
   for pkg in "${npm_globals[@]}"; do
-    if npm ls -g --depth=0 "$pkg" >/dev/null 2>&1; then
+    # skip @anthropic-ai/claude-code if claude is already in PATH (e.g. brew-managed)
+    if [[ "$pkg" == "@anthropic-ai/claude-code" ]] && command -v claude >/dev/null 2>&1; then
+      echo "  = $pkg (already in PATH)"
+    elif npm ls -g --depth=0 "$pkg" >/dev/null 2>&1; then
       echo "  = npm $pkg"
     else
       echo "  + npm install -g $pkg"; npm install -g "$pkg"
