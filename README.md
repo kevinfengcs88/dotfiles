@@ -6,6 +6,8 @@ from the same `home/` package — OS differences are handled at runtime (e.g. th
 `$OSTYPE` branches in `.zshrc`), and tools that only exist on one OS (yabai/skhd
 on macOS; polybar/MangoHud/kde on Linux) are simply inert on the other.
 
+- **Claude Code setup:** see [docs/claude-setup.md](docs/claude-setup.md) for the unified cross-machine Claude config (tools, plugins, MCP servers, aliases, auth).
+
 ## Setup on a new machine
 
 ```sh

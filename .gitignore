@@ -10,3 +10,7 @@ STOW.md
 # python bytecode
 __pycache__/
 *.pyc
+
+# Serena project-state leaked at the repo root (regenerated locally, never commit).
+# Root-anchored on purpose: must NOT match the tracked home/.serena/ config.
+/.serena/

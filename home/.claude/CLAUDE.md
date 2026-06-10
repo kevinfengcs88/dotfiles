@@ -1,14 +1,10 @@
 # Global Claude Code Instructions
 
-## Search Tools — Use mgrep
+## Search Tools
 
-**MANDATORY:** The `mgrep:mgrep` skill is installed and MUST be used for all search operations.
-
-- **File/code search:** invoke `mgrep:mgrep` skill, then `mgrep "semantic description of what you need" [optional/path]`
-- **Web search:** invoke `mgrep:mgrep` skill, then `mgrep --web --answer "query"`
-- **Never** use the built-in `Grep` tool
-- **Never** run `grep` directly via Bash as a primary search command
-- **Never** use built-in `WebSearch` tool — use `mgrep --web --answer` instead
-- mgrep is semantic, so describe what you're looking for in plain language, not regex patterns
+- **Code/symbol search:** prefer Serena (LSP-based, local) — `find_symbol`, `find_referencing_symbols`, `get_symbols_overview`. Built-in `Grep`/`Glob` are fine for plain text/file search.
+- **Web search:** use the built-in `WebSearch` tool.
+- **Library/framework docs:** use context7 (`resolve-library-id` → `query-docs`).
+- mgrep has been removed (paid, credit-gated); do not reference it.
 
 @RTK.md
