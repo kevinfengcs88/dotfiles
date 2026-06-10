@@ -7,10 +7,6 @@
 # stray Claude Code session transcripts
 STOW.md
 *.session.md
-
-# playtime runtime session data (per-host, not portable)
-home/.claude/playtime/data/sessions-*.jsonl
-
 # python bytecode
 __pycache__/
 *.pyc
