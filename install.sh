@@ -69,14 +69,7 @@ claude_setup() {
     fi
   done
 
-  # 2. headroom (context compressor; pip --user package is headroom-ai)
-  if command -v headroom >/dev/null 2>&1; then
-    echo "  = headroom"
-  else
-    echo "  + python3 -m pip install --user headroom-ai"; python3 -m pip install --user headroom-ai
-  fi
-
-  # 3. rtk (Rust Token Killer; defensive hook no-ops until present)
+  # 2. rtk (Rust Token Killer; defensive hook no-ops until present)
   #    Upstream: https://github.com/rtk-ai/rtk  (needs rtk >= 0.23.0)
   if command -v rtk >/dev/null 2>&1; then
     echo "  = rtk ($(rtk --version 2>/dev/null | head -1))"
@@ -84,7 +77,7 @@ claude_setup() {
     echo "  + cargo install rtk (from upstream)"; cargo install --git https://github.com/rtk-ai/rtk rtk
   fi
 
-  # 4. plugin marketplaces (drop Mixedbread-Grep + ecc)
+  # 3. plugin marketplaces (drop Mixedbread-Grep + ecc)
   local marketplaces_official="anthropics/claude-plugins-official"
   local marketplaces_ce="EveryInc/compound-engineering-plugin"
   claude plugin marketplace list 2>/dev/null | grep -q claude-plugins-official \
@@ -92,7 +85,7 @@ claude_setup() {
   claude plugin marketplace list 2>/dev/null | grep -q compound-engineering-plugin \
     || claude plugin marketplace add "$marketplaces_ce"
 
-  # 5. plugins — install every entry from tracked settings.json enabledPlugins,
+  # 4. plugins — install every entry from tracked settings.json enabledPlugins,
   #    except mgrep. Enable/disable state itself lives in settings.json.
   local installed; installed="$(claude plugin list 2>/dev/null || true)"
   while IFS= read -r plugin; do
@@ -105,23 +98,25 @@ claude_setup() {
     fi
   done < <(jq -r '.enabledPlugins | keys[]' "$REPO_DIR/home/.claude/settings.json")
 
-  # 6. MCP servers (user scope). Re-register gitnexus with a PATH-stable command.
+  # 5. MCP servers (user scope). Re-register gitnexus with a PATH-stable command.
   local mcp_existing; mcp_existing="$(claude mcp list 2>/dev/null || true)"
   printf '%s\n' "$mcp_existing" | grep -q '^serena' \
     || claude mcp add -s user serena -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --project-from-cwd --context claude-code
   # gitnexus: always re-register to drop any stale nvm-pinned absolute path.
   claude mcp remove gitnexus -s user >/dev/null 2>&1 || true
   claude mcp add -s user gitnexus -- gitnexus mcp
-  printf '%s\n' "$mcp_existing" | grep -q '^headroom' \
-    || claude mcp add -s user headroom -- headroom mcp serve
   # github is HTTP + secret token — handled in the auth report, not here.
 
-  # 7. mgrep teardown (idempotent)
+  # 6. mgrep + headroom teardown (idempotent)
   npm ls -g --depth=0 @mixedbread/mgrep >/dev/null 2>&1 && npm uninstall -g @mixedbread/mgrep || true
   claude plugin uninstall mgrep@Mixedbread-Grep >/dev/null 2>&1 || true
   claude plugin marketplace remove Mixedbread-Grep >/dev/null 2>&1 || true
   rm -f "$HOME/.claude/hooks/mgrep-enforce.cjs"
-  echo "  - mgrep torn down"
+  # headroom (context-compressor proxy) removed 2026-06: capped the model context
+  # window at 200k and triggered spurious compaction.
+  claude mcp remove headroom -s user >/dev/null 2>&1 || true
+  command -v headroom >/dev/null 2>&1 && python3 -m pip uninstall -y headroom-ai >/dev/null 2>&1 || true
+  echo "  - mgrep + headroom torn down"
 }
 
 # -----------------------------------------------------------------------------
@@ -147,18 +142,8 @@ claude_auth_report() {
     echo "        claude mcp add -s user --transport http github https://api.githubcopilot.com/mcp --header \"Authorization: Bearer \$TOKEN\""
   fi
 
-  # headroom: the proxy uses Claude's own backend (--backend anthropic);
-  # no separate login is required for `headroom wrap claude`.
-  if command -v headroom >/dev/null 2>&1; then
-    echo "  ok  headroom: installed (run 'headroom wrap claude'; no separate login for the proxy)"
-  else
-    echo "  TODO headroom: python3 -m pip install --user headroom-ai"
-  fi
-
   # serena: local, no auth.
   echo "  ok  serena: local (no auth)"
-
-  echo "  note: aliases 'claudeh' / 'hclaude' / 'hc' run 'headroom wrap claude' (see ~/.zshrc)"
 }
 
 if [ "$ACTION" = "delete" ]; then
