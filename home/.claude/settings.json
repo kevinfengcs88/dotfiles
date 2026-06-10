@@ -80,16 +80,6 @@
         ]
       },
       {
-        "matcher": "Grep|Bash|WebSearch",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/mgrep-enforce.cjs\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
         "matcher": "Grep|Glob|Bash",
         "hooks": [
           {
@@ -160,7 +150,6 @@
     "superpowers@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "firecrawl@claude-plugins-official": false,
-    "mgrep@Mixedbread-Grep": true,
     "commit-commands@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
@@ -177,18 +166,6 @@
       "source": {
         "source": "github",
         "repo": "EveryInc/compound-engineering-plugin"
-      }
-    },
-    "Mixedbread-Grep": {
-      "source": {
-        "source": "github",
-        "repo": "mixedbread-ai/mgrep"
-      }
-    },
-    "ecc": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/affaan-m/ECC.git"
       }
     }
   },
