@@ -148,6 +148,7 @@ alias cusage='~/projects/claude-percent/bin/usage'
 alias grip='go-grip -b=false'
 alias hclaude='headroom wrap claude'
 alias claudeh='headroom wrap claude'
+alias h='headroom wrap claude'
 
 function usage {
     if [[ "$OSTYPE" == darwin* ]]; then
