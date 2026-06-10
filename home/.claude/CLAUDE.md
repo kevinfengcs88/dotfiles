@@ -10,3 +10,5 @@
 - **Never** run `grep` directly via Bash as a primary search command
 - **Never** use built-in `WebSearch` tool — use `mgrep --web --answer` instead
 - mgrep is semantic, so describe what you're looking for in plain language, not regex patterns
+
+@RTK.md
