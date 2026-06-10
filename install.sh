@@ -124,6 +124,43 @@ claude_setup() {
   echo "  - mgrep torn down"
 }
 
+# -----------------------------------------------------------------------------
+# claude_auth_report — probe auth-requiring pieces; print fix commands. Never
+# stores or writes any secret. github MCP token is supplied by the user here.
+# -----------------------------------------------------------------------------
+claude_auth_report() {
+  echo "==> Auth report (read-only)"
+
+  # Claude login
+  if claude mcp list >/dev/null 2>&1; then
+    echo "  ok  claude: CLI responds (logged in)"
+  else
+    echo "  TODO claude: run 'claude' once and complete login"
+  fi
+
+  # github MCP (HTTP, needs a GitHub token with Copilot/MCP access)
+  if claude mcp get github 2>/dev/null | grep -q 'Connected'; then
+    echo "  ok  github MCP: connected"
+  else
+    echo "  TODO github MCP: provision a token, then register it:"
+    echo "        TOKEN=\$(gh auth token)   # or a PAT with Copilot access"
+    echo "        claude mcp add -s user --transport http github https://api.githubcopilot.com/mcp --header \"Authorization: Bearer \$TOKEN\""
+  fi
+
+  # headroom: the proxy uses Claude's own backend (--backend anthropic);
+  # no separate login is required for `headroom wrap claude`.
+  if command -v headroom >/dev/null 2>&1; then
+    echo "  ok  headroom: installed (run 'headroom wrap claude'; no separate login for the proxy)"
+  else
+    echo "  TODO headroom: pip install --user headroom-ai"
+  fi
+
+  # serena: local, no auth.
+  echo "  ok  serena: local (no auth)"
+
+  echo "  note: aliases 'claudeh' / 'hclaude' / 'hc' run 'headroom wrap claude' (see ~/.zshrc)"
+}
+
 if [ "$ACTION" = "delete" ]; then
   echo "Unlinking dotfiles from $HOME ..."
   run_stow -D -t "$HOME" home
