@@ -81,7 +81,7 @@ claude_setup() {
   if command -v rtk >/dev/null 2>&1; then
     echo "  = rtk ($(rtk --version 2>/dev/null | head -1))"
   else
-    echo "  + cargo install rtk"; cargo install rtk
+    echo "  + cargo install rtk (from upstream)"; cargo install --git https://github.com/rtk-ai/rtk rtk
   fi
 
   # 4. plugin marketplaces (drop Mixedbread-Grep + ecc)

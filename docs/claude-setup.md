@@ -31,7 +31,7 @@ the Claude setup + auth report.
 |---|---|---|
 | Claude Code | the CLI | `npm i -g @anthropic-ai/claude-code` |
 | headroom | context compressor; run via `headroom wrap claude` | `pip install --user headroom-ai` |
-| rtk | Rust Token Killer — rewrites Bash commands for token savings (PreToolUse hook) | `cargo install rtk` |
+| rtk | Rust Token Killer — rewrites Bash commands for token savings (PreToolUse hook) | `cargo install --git https://github.com/rtk-ai/rtk rtk` |
 | Serena | LSP-based local code intelligence (MCP) | pulled on demand by `uvx` |
 | gitnexus | code-graph context (MCP + hooks) | `npm i -g gitnexus` |
 | firecrawl | web scraping CLI/plugin | `npm i -g firecrawl-cli` |
