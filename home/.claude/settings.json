@@ -99,6 +99,15 @@
             "statusMessage": "Enriching with GitNexus graph context..."
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/kevin/.claude/hooks/rtk-rewrite.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
