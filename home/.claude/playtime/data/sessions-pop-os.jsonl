@@ -543,3 +543,7 @@
 {"start": 1781100724, "end": 1781100743, "session_id": "f6255ece-d163-4931-b60a-a2a593e92f3f", "host": "pop-os", "source": "hook"}
 {"start": 1781099073, "end": 1781099073, "session_id": "774f5f49-f997-4a68-aefb-0e459b0ba22e", "host": "pop-os", "source": "hook-crash"}
 {"start": 1781101078, "end": 1781101299, "session_id": "05fa7fa7-51d2-4feb-acec-ef02e50e6773", "host": "pop-os", "source": "hook"}
+{"start": 1781101484, "end": 1781101668, "session_id": "532b2b7d-4e83-4bb9-b6d2-96aa1cd8ad66", "host": "pop-os", "source": "hook"}
+{"start": 1781101683, "end": 1781101689, "session_id": "532b2b7d-4e83-4bb9-b6d2-96aa1cd8ad66", "host": "pop-os", "source": "hook"}
+{"start": 1781101696, "end": 1781101797, "session_id": "532b2b7d-4e83-4bb9-b6d2-96aa1cd8ad66", "host": "pop-os", "source": "hook"}
+{"start": 1781101823, "end": 1781101892, "session_id": "532b2b7d-4e83-4bb9-b6d2-96aa1cd8ad66", "host": "pop-os", "source": "hook"}

@@ -50,7 +50,21 @@ else
   # Link system config files into /etc (requires sudo).
   if [ -d "$REPO_DIR/etc" ]; then
     echo "Linking system dotfiles into /etc (sudo required) ..."
-    sudo stow -R -t /etc etc
+    # Remove any pre-existing absolute symlinks pointing into the repo — stow
+    # only recognises the relative symlinks it creates itself, and will refuse
+    # to overwrite absolute ones even when they point at the same target.
+    while IFS= read -r -d '' link; do
+      target="$(readlink "$link")"
+      case "$target" in
+        "$REPO_DIR"/etc/*)
+          sudo rm -f "$link"
+          ;;
+      esac
+    done < <(sudo find /etc -maxdepth 5 -type l -print0 2>/dev/null)
+    _etc_err="$(mktemp)"; _etc_rc=0
+    sudo stow -R -t /etc etc 2>"$_etc_err" || _etc_rc=$?
+    grep -v 'BUG in find_stowed_path' "$_etc_err" >&2 || true
+    rm -f "$_etc_err"; [ "$_etc_rc" -eq 0 ]
     echo "Done. /etc symlinks point at $REPO_DIR/etc."
   fi
 fi
