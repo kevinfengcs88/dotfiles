@@ -37,7 +37,6 @@
       "Bash(node /home/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs*)",
       "Bash(node /Users/kevin/.claude/hooks/gitnexus/gitnexus-hook.cjs*)",
       "Bash(npx gitnexus*)",
-      "Bash(gsd*)",
       "Bash(supabase*)",
       "Bash(python3 /home/kevin/projects/slay/scripts/*.py*)",
       "Bash(python3 /Users/kevin/projects/slay/scripts/*.py*)",
@@ -67,7 +66,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "fable",
+  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -100,56 +99,6 @@
             "statusMessage": "Enriching with GitNexus graph context..."
           }
         ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/gsd-prompt-guard.js\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/gsd-read-guard.js\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash|Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/gsd-workflow-guard.js\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f \"$HOME/.claude/hooks/gsd-worktree-path-guard.js\" ]; then node \"$HOME/.claude/hooks/gsd-worktree-path-guard.js\"; fi",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$HOME/.claude/hooks/gsd-validate-commit.sh\"",
-            "timeout": 5
-          }
-        ]
       }
     ],
     "PostToolUse": [
@@ -163,65 +112,9 @@
             "statusMessage": "Checking GitNexus index freshness..."
           }
         ]
-      },
-      {
-        "matcher": "Bash|Edit|Write|MultiEdit|Agent|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/gsd-context-monitor.js\"",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/gsd-read-injection-scanner.js\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$HOME/.claude/hooks/gsd-graphify-update.sh\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$HOME/.claude/hooks/gsd-phase-boundary.sh\"",
-            "timeout": 5
-          }
-        ]
       }
     ],
     "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/gsd-check-update.js\""
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$HOME/.claude/hooks/gsd-session-state.sh\""
-          }
-        ]
-      },
       {
         "hooks": [
           {
@@ -268,8 +161,7 @@
     "feature-dev@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": false,
     "code-review@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": false,
-    "ecc@ecc": false
+    "pyright-lsp@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "compound-engineering-plugin": {
