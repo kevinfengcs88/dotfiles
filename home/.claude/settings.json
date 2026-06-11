@@ -121,6 +121,11 @@
             "type": "command",
             "command": "python3 \"$HOME/dotfiles/home/.claude/playtime/playtime.py\" session-start",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/dotfiles/home/.claude/hooks/disabled-plugins.py\"",
+            "timeout": 10
           }
         ]
       }
