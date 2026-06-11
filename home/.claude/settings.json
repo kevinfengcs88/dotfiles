@@ -140,6 +140,17 @@
           }
         ]
       }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/dotfiles/home/.claude/hooks/disabled-plugins.py\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -147,18 +158,18 @@
     "command": "bash \"$HOME/dotfiles/home/.claude/playtime/playtime-statusline.sh\""
   },
   "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": false,
     "ralph-loop@claude-plugins-official": false,
     "vercel@claude-plugins-official": false,
     "supabase@claude-plugins-official": false,
     "playwright@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": false,
     "context7@claude-plugins-official": true,
     "firecrawl@claude-plugins-official": false,
     "commit-commands@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": false,
     "hookify@claude-plugins-official": false,
     "code-simplifier@claude-plugins-official": false,
     "feature-dev@claude-plugins-official": false,
