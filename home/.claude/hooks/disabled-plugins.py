@@ -76,7 +76,9 @@ def main():
     if not enabled and not disabled:
         return  # No plugin state to report -> stay quiet.
 
-    system_message = render_table(enabled, disabled)
+    # Leading newline so the table starts on its own line below the
+    # "SessionStart:startup says:" prefix instead of beside it.
+    system_message = "\n" + render_table(enabled, disabled)
 
     output = {"systemMessage": system_message}
 
