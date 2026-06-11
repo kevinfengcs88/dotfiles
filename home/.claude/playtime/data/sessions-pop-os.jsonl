@@ -608,3 +608,15 @@
 {"start": 1781192546, "end": 1781192546, "session_id": "400e75fa-f68d-4b0f-8857-4f9cd5c97664", "host": "pop-os", "source": "hook"}
 {"start": 1781192257, "end": 1781192557, "session_id": "d4989e18-b9be-4f6b-afb5-fe7a21efa25e", "host": "pop-os", "source": "backfill"}
 {"start": 1781192548, "end": 1781192560, "session_id": "62e427b6-325c-4b35-8e1b-28d64be6e948", "host": "pop-os", "source": "hook"}
+{"start": 1781192578, "end": 1781197255, "session_id": "0411f20e-c76a-439d-b92a-960a7bf0d924", "host": "pop-os", "source": "hook"}
+{"start": 1781192176, "end": 1781194978, "session_id": "d4989e18-b9be-4f6b-afb5-fe7a21efa25e", "host": "pop-os", "source": "hook-crash"}
+{"start": 1781197305, "end": 1781197476, "session_id": "6b4016f0-68ff-4089-9ea2-35834c35e556", "host": "pop-os", "source": "hook"}
+{"start": 1781197497, "end": 1781197574, "session_id": "6b4016f0-68ff-4089-9ea2-35834c35e556", "host": "pop-os", "source": "hook"}
+{"start": 1781197589, "end": 1781198517, "session_id": "6b4016f0-68ff-4089-9ea2-35834c35e556", "host": "pop-os", "source": "hook"}
+{"start": 1781201211, "end": 1781201212, "session_id": "d4989e18-b9be-4f6b-afb5-fe7a21efa25e", "host": "pop-os", "source": "hook"}
+{"start": 1781201040, "end": 1781201279, "session_id": "2a369a59-a200-4c09-8368-14b2b04abc79", "host": "pop-os", "source": "hook"}
+{"start": 1781202722, "end": 1781202887, "session_id": "4a2ceacc-28ef-4288-b0e5-9f92062f1900", "host": "pop-os", "source": "hook"}
+{"start": 1781202897, "end": 1781203141, "session_id": "d4989e18-b9be-4f6b-afb5-fe7a21efa25e", "host": "pop-os", "source": "hook"}
+{"start": 1781203155, "end": 1781203666, "session_id": "c0e4ca4c-b669-4293-b4db-62647ae185e8", "host": "pop-os", "source": "hook"}
+{"start": 1781203736, "end": 1781203742, "session_id": "c0e4ca4c-b669-4293-b4db-62647ae185e8", "host": "pop-os", "source": "hook"}
+{"start": 1781203750, "end": 1781204359, "session_id": "d4989e18-b9be-4f6b-afb5-fe7a21efa25e", "host": "pop-os", "source": "hook"}

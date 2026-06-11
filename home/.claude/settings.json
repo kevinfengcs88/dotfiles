@@ -2,6 +2,7 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(npm *)",
@@ -178,6 +179,5 @@
   "teammateMode": "in-process",
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
-  "voiceEnabled": true,
-  "includeCoAuthoredBy": false
+  "voiceEnabled": true
 }

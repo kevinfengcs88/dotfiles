@@ -178,5 +178,6 @@ project_serena_folder_location: "$projectDir/.serena"
 projects:
 - /home/kevin/dotfiles
 - /home/kevin/projects
+- /home/kevin/projects/claude-percent
 - /home/kevin/projects/ghost-word-count
 - /home/kevin/projects/slay
