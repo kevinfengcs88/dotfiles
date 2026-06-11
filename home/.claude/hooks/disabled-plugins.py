@@ -26,6 +26,26 @@ def load_enabled_plugins(path):
         return {}
 
 
+def render_table(enabled, disabled):
+    """Two-column ASCII table: enabled plugins beside disabled ones."""
+    left_header = f"ENABLED ({len(enabled)})"
+    right_header = f"DISABLED ({len(disabled)})"
+    left_w = max([len(left_header)] + [len(x) for x in enabled])
+    right_w = max([len(right_header)] + [len(x) for x in disabled])
+
+    def row(left, right):
+        return f"| {left.ljust(left_w)} | {right.ljust(right_w)} |"
+
+    sep = f"+{'-' * (left_w + 2)}+{'-' * (right_w + 2)}+"
+    lines = [sep, row(left_header, right_header), sep]
+    for i in range(max(len(enabled), len(disabled))):
+        left = enabled[i] if i < len(enabled) else ""
+        right = disabled[i] if i < len(disabled) else ""
+        lines.append(row(left, right))
+    lines.append(sep)
+    return "\n".join(lines)
+
+
 def main():
     # Hook receives JSON on stdin; we only need cwd (may be absent).
     cwd = os.getcwd()
@@ -45,37 +65,37 @@ def main():
     ):
         merged.update(load_enabled_plugins(path))
 
-    # Disabled = explicitly false. Strip the @marketplace suffix for readability.
+    # Split into enabled (true) / disabled (false). Strip @marketplace suffix.
+    enabled = sorted(
+        name.split("@", 1)[0] for name, v in merged.items() if v is True
+    )
     disabled = sorted(
-        name.split("@", 1)[0]
-        for name, enabled in merged.items()
-        if enabled is False
+        name.split("@", 1)[0] for name, v in merged.items() if v is False
     )
 
-    if not disabled:
-        return  # Nothing disabled -> stay quiet, no noise.
+    if not enabled and not disabled:
+        return  # No plugin state to report -> stay quiet.
 
-    names = ", ".join(disabled)
-    count = len(disabled)
-    system_message = (
-        f"\U0001f50c {count} installed plugin{'s' if count != 1 else ''} "
-        f"disabled this session: {names}. Run /plugin to enable before you need them."
-    )
-    additional_context = (
-        "These plugins are INSTALLED but DISABLED this session (kept off to save "
-        f"context): {names}. If the user's task would be served by one of them "
-        "(e.g. 'playwright' for browser automation/screenshots, a '*-lsp' for "
-        "language-server features), proactively remind the user to enable it via "
-        "/plugin before proceeding rather than working around its absence."
-    )
+    system_message = render_table(enabled, disabled)
 
-    print(json.dumps({
-        "systemMessage": system_message,
-        "hookSpecificOutput": {
+    output = {"systemMessage": system_message}
+
+    # Only nudge Claude when something is actually disabled (the actionable case).
+    if disabled:
+        names = ", ".join(disabled)
+        output["hookSpecificOutput"] = {
             "hookEventName": "SessionStart",
-            "additionalContext": additional_context,
-        },
-    }))
+            "additionalContext": (
+                "These plugins are INSTALLED but DISABLED this session (kept off "
+                f"to save context): {names}. If the user's task would be served "
+                "by one of them (e.g. 'playwright' for browser automation/"
+                "screenshots, a '*-lsp' for language-server features), proactively "
+                "remind the user to enable it via /plugin before proceeding "
+                "rather than working around its absence."
+            ),
+        }
+
+    print(json.dumps(output))
 
 
 if __name__ == "__main__":
