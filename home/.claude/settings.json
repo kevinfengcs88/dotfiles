@@ -66,7 +66,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "fable",
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -142,7 +142,6 @@
   },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
-    "compound-engineering@compound-engineering-plugin": true,
     "ralph-loop@claude-plugins-official": false,
     "vercel@claude-plugins-official": false,
     "supabase@claude-plugins-official": false,
@@ -179,5 +178,6 @@
   "teammateMode": "in-process",
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
-  "voiceEnabled": true
+  "voiceEnabled": true,
+  "includeCoAuthoredBy": false
 }
