@@ -60,3 +60,12 @@
 {"start": 1781033672, "end": 1781034049, "session_id": "d8a8529f-95dc-40ea-a835-724032c46ab5", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
 {"start": 1781034260, "end": 1781034287, "session_id": "ae2de891-be8c-477a-8d7e-da2cbe2ba168", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
 {"start": 1781038181, "end": 1781038439, "session_id": "5853d06f-51b0-436a-a2dc-947b6d077b39", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
+{"start": 1781097085, "end": 1781097385, "session_id": "be6efa53-cfe1-4763-820f-8435d5d6a070", "host": "Kevins-MacBook-Pro.local", "source": "backfill"}
+{"start": 1781097136, "end": 1781098395, "session_id": "0882b679-1519-4294-bf91-e7bc6e0fb387", "host": "Kevins-MacBook-Pro.local", "source": "backfill"}
+{"start": 1781097573, "end": 1781097991, "session_id": "4d0efa08-f33e-4988-ab00-58259dea2d72", "host": "Kevins-MacBook-Pro.local", "source": "backfill"}
+{"start": 1781119087, "end": 1781119404, "session_id": "110c805e-6161-490b-b365-b3b25121b8d3", "host": "Kevins-MacBook-Pro.local", "source": "backfill"}
+{"start": 1781129300, "end": 1781129600, "session_id": "d76cf77e-0fef-4974-aea6-bdb87af69d2f", "host": "Kevins-MacBook-Pro.local", "source": "backfill"}
+{"start": 1781186523, "end": 1781186524, "session_id": "494198e2-7a28-4efe-9dd5-a5aed1c0e70d", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
+{"start": 1781186548, "end": 1781187365, "session_id": "d6a0160d-aab2-468b-b438-7385b0019af4", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
+{"start": 1781187399, "end": 1781187764, "session_id": "c53aa4a6-4c7a-4d46-8443-693e9d8bc1b3", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
+{"start": 1781392122, "end": 1781392124, "session_id": "9758bb67-b2f9-4295-b40a-86602e8f74cd", "host": "Kevins-MacBook-Pro.local", "source": "hook"}
