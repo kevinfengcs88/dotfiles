@@ -14,3 +14,7 @@ __pycache__/
 # Serena project-state leaked at the repo root (regenerated locally, never commit).
 # Root-anchored on purpose: must NOT match the tracked home/.serena/ config.
 /.serena/
+
+# Serena language servers and logs (regenerated locally, never commit).
+home/.serena/language_servers/
+home/.serena/logs/
